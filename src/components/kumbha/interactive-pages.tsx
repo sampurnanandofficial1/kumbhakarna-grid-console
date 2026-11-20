@@ -51,6 +51,7 @@ import {
   type ConsoleEvent,
 } from "../../engine/feeder";
 import { loadSolar, CITIES, type SolarResult } from "../../engine/solar";
+import { HOUSEHOLD_PERSONA } from "../../data/persona";
 import { calculateEconomics, ECONOMICS_DEFAULT, type EconomicsInput } from "../../engine/economics";
 import { hydrateDemoStore, setDemoState, useDemoStore, resetDemoStore } from "../../lib/demo-store";
 import {
@@ -68,6 +69,9 @@ type PageId = "restoration" | "scenarios" | "flex" | "household" | "console" | "
 const money = (v: number) =>
   "₹" +
   new Intl.NumberFormat("en-IN", { maximumFractionDigits: 0 }).format(Number.isFinite(v) ? v : 0);
+const moneyPrecise = (v: number) =>
+  "₹" +
+  new Intl.NumberFormat("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number.isFinite(v) ? v : 0);
 const pct = (v: number) => v.toFixed(1) + "%";
 const fmt = (v: number, d = 1) => v.toFixed(d);
 function download(name: string, body: string, type = "text/plain;charset=utf-8") {
@@ -1344,15 +1348,15 @@ function FlexPage() {
 }
 function HouseholdPage() {
   const store = useDemoStore(),
-    [localSoc] = useState(0.92),
+    [localSoc] = useState(HOUSEHOLD_PERSONA.preSOC),
     [showNotice, setShowNotice] = useState(false);
   useEffect(() => {
     hydrateDemoStore();
   }, []);
-  const backedKW = 0.42,
+  const backedKW = HOUSEHOLD_PERSONA.backedKW,
     duration = 30,
-    multiplier = 1.05,
-    noise = 1.05,
+    multiplier = HOUSEHOLD_PERSONA.multiplier,
+    noise = HOUSEHOLD_PERSONA.noise,
     guard = reserveGuard(
       localSoc,
       backedKW,
@@ -1360,16 +1364,19 @@ function HouseholdPage() {
       noise,
       duration,
       store.reservePercent / 100,
-      2,
-      0.03,
+      HOUSEHOLD_PERSONA.p90OutageHours,
+      HOUSEHOLD_PERSONA.socMargin,
     ),
     backupHours = Math.max(0, ((localSoc - 0.2) * 1.8 * 0.85) / backedKW);
   const incoming = () => {
+    if (store.notice?.status === "pending") return;
+    const eventId = "EV-HOME-0412-" + String(store.events.length + 1).padStart(3, "0");
     setDemoState({
       notice: {
+        eventId,
         time: "18:45 today",
         duration,
-        status: guard.eligible ? "pending" : "blocked",
+        status: guard.eligible && !store.criticalBackup ? "pending" : "blocked",
         reason: guard.reason,
         projected: guard.projectedSOC,
         reserve: guard.reserve,
@@ -1378,44 +1385,22 @@ function HouseholdPage() {
     setShowNotice(true);
   };
   const continueEvent = () => {
+    const notice = store.notice;
+    if (!notice || notice.status !== "pending" || store.events.some((item) => item.id === notice.eventId)) return;
+    const credit = 4.5;
     setDemoState({
-      notice: {
-        time: "18:45 today",
-        duration,
-        status: "accepted",
-        reason: "Reserve Guard passed",
-        projected: guard.projectedSOC,
-        reserve: guard.reserve,
-      },
-      credits: store.credits + 4.5,
-      events: [
-        {
-          id: "EV-DEMO-0412",
-          status: "Participated",
-          time: "Today · 18:45",
-          duration: 30,
-          credit: 4.5,
-        },
-        ...store.events,
-      ],
+      notice: { ...notice, status: "accepted", reason: "Reserve Guard passed" },
+      credits: store.credits + credit,
+      events: [{ id: notice.eventId ?? "EV-HOME-0412-001", status: "Participated", time: "Today · 18:45", duration, credit }, ...store.events],
     });
     setShowNotice(false);
   };
   const optOut = () => {
+    const notice = store.notice;
+    if (!notice || notice.status !== "pending" || store.events.some((item) => item.id === notice.eventId)) return;
     setDemoState({
-      optOutNext: true,
-      notice: {
-        time: "18:45 today",
-        duration,
-        status: "blocked",
-        reason: "You opted out. Your choice is always honoured.",
-        projected: guard.projectedSOC,
-        reserve: guard.reserve,
-      },
-      events: [
-        { id: "EV-DEMO-0412", status: "Opted out", time: "Today · 18:45", duration: 30, credit: 0 },
-        ...store.events,
-      ],
+      notice: { ...notice, status: "blocked", reason: "You opted out. Your choice is always honoured." },
+      events: [{ id: notice.eventId ?? "EV-HOME-0412-001", status: "Opted out", time: "Today · 18:45", duration, credit: 0 }, ...store.events],
     });
     setShowNotice(false);
   };
@@ -1498,15 +1483,15 @@ function HouseholdPage() {
             <div className="phone-card credits-card">
               <div>
                 <small>Credits earned</small>
-                <b>{money(store.credits + 67)}</b>
+                <b>{moneyPrecise(store.events.reduce((sum, item) => sum + item.credit, 0))}</b>
               </div>
               <div>
                 <small>Events this year</small>
-                <b>{store.events.filter((e) => e.status === "Participated").length + 12}</b>
+                <b>{store.events.length}</b>
               </div>
               <small>Battery warranty +6 months (proposed)</small>
             </div>
-            {(showNotice || store.notice) && (
+            {showNotice && store.notice && (
               <div
                 className={
                   "phone-event " + (guard.eligible && !store.criticalBackup ? "" : "blocked")
@@ -1517,21 +1502,19 @@ function HouseholdPage() {
                   <span className="mini-pill">18:45 · 30 min</span>
                 </div>
                 <p>Fans and lights can run on your inverter battery during this short event.</p>
-                <div className="guard-explain">
-                  Projected battery after event <b>{pct(guard.projectedSOC * 100)}</b>{" "}
-                  {guard.eligible && !store.criticalBackup ? "≥" : "<"} your reserve{" "}
-                  <b>{pct(guard.reserve * 100)}</b> →{" "}
-                  {guard.eligible && !store.criticalBackup
-                    ? "you can take part"
-                    : "Reserve Guard blocks participation"}
-                </div>
-                {store.criticalBackup && (
-                  <small>Critical-backup is enabled. You will not be dispatched.</small>
+                {store.criticalBackup ? (
+                  <div className="guard-explain">Critical backup is on: your battery will not be used for grid support.</div>
+                ) : (
+                  <div className="guard-explain">
+                    Projected battery after event <b>{pct(guard.projectedSOC * 100)}</b>{" "}
+                    {guard.eligible ? "≥" : "<"} your reserve <b>{pct(guard.reserve * 100)}</b> →{" "}
+                    {guard.eligible ? "you can take part" : "Reserve Guard blocks participation"}
+                  </div>
                 )}
                 <div className="phone-event-actions">
-                  <button onClick={optOut}>Opt out</button>
+                  <button disabled={store.notice?.status !== "pending"} onClick={optOut}>Opt out</button>
                   <button
-                    disabled={!guard.eligible || store.criticalBackup}
+                    disabled={store.notice?.status !== "pending" || !guard.eligible || store.criticalBackup}
                     onClick={continueEvent}
                   >
                     Continue
@@ -1539,7 +1522,7 @@ function HouseholdPage() {
                 </div>
               </div>
             )}
-            <button className="phone-simulate" onClick={incoming}>
+            <button className="phone-simulate" onClick={incoming} disabled={store.notice?.status === "pending"}>
               Simulate incoming event
             </button>
             <div className="phone-home-indicator" />
@@ -1585,7 +1568,7 @@ function HouseholdPage() {
           </Panel>
           <Panel title="Event history" subtitle="Illustrative events in this demo">
             <Table
-              headers={["Event", "Outcome", "Credit"]}
+              headers={["Event", "Date/time", "Outcome", "Credit"]}
               rows={(store.events.length
                 ? store.events
                 : [
@@ -1605,7 +1588,7 @@ function HouseholdPage() {
                       reason: "Projected SOC below reserve",
                     },
                   ]
-              ).map((e) => [e.time, e.status, money(e.credit)])}
+              ).map((e) => [e.id, e.time, e.status, moneyPrecise(e.credit)])}
             />
           </Panel>
         </div>
@@ -1652,7 +1635,10 @@ function ConsolePage() {
       time,
       durationMin: duration,
       holdoutPct: holdout,
-      reserveFloor: store.reservePercent / 100,
+      reserveFloor: DEFAULT_FLEX.reserveFloor,
+      personaReservePercent: store.reservePercent,
+      personaCriticalBackup: store.criticalBackup,
+      personaOptOutNext: store.optOutNext,
       p90OutageHours: 2,
       criticalBackup: store.criticalBackup,
       optOutNext: store.optOutNext,
@@ -1660,30 +1646,34 @@ function ConsolePage() {
       sequence: store.eventLog.length,
     });
     setEvent(x);
+    const personaRow = x.rows.find((row) => row.home_id === HOUSEHOLD_PERSONA.id);
+    const personaParticipated = personaRow?.group === "dispatched";
+    const personaOutcome = personaParticipated
+      ? "Participated"
+      : personaRow?.group === "standby"
+        ? "Standby"
+        : personaRow?.group === "holdout"
+          ? "Holdout"
+          : "Blocked by Reserve Guard";
+    const personaCredit = personaRow?.credit_inr ?? 0;
     setDemoState({
       lastEvent: x,
       eventLog: [x, ...store.eventLog],
       optOutNext: false,
       notice: {
+        eventId: x.eventId,
         time: time + " today",
         duration,
-        status: x.status === "Met" ? "accepted" : "pending",
-        reason: x.status,
-        projected: 0.78,
-        reserve: store.reservePercent / 100,
+        status: personaParticipated ? "accepted" : "blocked",
+        reason: personaRow?.exclusion_reason || personaOutcome,
+        projected: personaRow?.projected_post_soc ?? 0,
+        reserve: personaRow?.reserve ?? 0,
       },
-      credits: store.credits + x.creditsPaid,
-      events: [
-        {
-          id: x.eventId,
-          status: x.status,
-          time: "Today · " + time,
-          duration,
-          credit: x.creditsPaid,
-          dtId: dt.id,
-        },
+      credits: store.credits + personaCredit,
+      events: dt.id === "DT-0412" ? [
+        { id: x.eventId, status: personaOutcome, time: "Today · " + time, duration, credit: personaCredit, dtId: dt.id, reason: personaRow?.exclusion_reason },
         ...store.events,
-      ],
+      ] : store.events,
     });
   };
   const profile = Array.from({ length: 24 }, (_, h) => ({
@@ -1928,6 +1918,12 @@ function ConsolePage() {
                   provenance="SIMULATED"
                 />
                 <KpiCard
+                  label="Eligible now"
+                  value={fmt(event.eligibleNowKVA)}
+                  unit="kVA"
+                  provenance="SIMULATED"
+                />
+                <KpiCard
                   label="Device-metered"
                   value={fmt(event.deviceMeteredKVA)}
                   unit="kVA"
@@ -1953,6 +1949,12 @@ function ConsolePage() {
                   provenance="SIMULATED"
                 />
               </div>
+              {event.requestedKVA > event.availableKVA && (
+                <div className="callout callout-amber">
+                  <b>Request exceeds available P90 capacity</b>
+                  <span>Requested relief is above the simulated firm P90 capacity for this transformer.</span>
+                </div>
+              )}
               <div className="callout callout-green">
                 <b>
                   {event.status} · {pct(event.metPct)}
