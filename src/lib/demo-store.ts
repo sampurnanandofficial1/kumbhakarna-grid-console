@@ -5,10 +5,10 @@ const defaults:DemoState={reservePercent:65,criticalBackup:false,optOutNext:fals
 let state:DemoState={...defaults};
 const listeners=new Set<()=>void>();
 function emit(){listeners.forEach(fn=>fn());}
-function persist(){try{localStorage.setItem("kumbha-demo-v1",JSON.stringify(state));}catch{}}
-export function hydrateDemoStore(){try{const raw=localStorage.getItem("kumbha-demo-v1");if(raw){const parsed=JSON.parse(raw) as Partial<DemoState>;state={...defaults,...parsed};}}catch{}emit();}
+function persist(){try{localStorage.setItem("kumbha-demo-v1",JSON.stringify(state));}catch { /* storage is optional in this demo */ }}
+export function hydrateDemoStore(){try{const raw=localStorage.getItem("kumbha-demo-v1");if(raw){const parsed=JSON.parse(raw) as Partial<DemoState>;state={...defaults,...parsed};}}catch { /* storage is optional in this demo */ }emit();}
 export function getDemoState(){return state;}
 export function setDemoState(patch:Partial<DemoState>){state={...state,...patch};persist();emit();}
-export function resetDemoStore(){state={...defaults};try{localStorage.removeItem("kumbha-demo-v1");}catch{}emit();}
+export function resetDemoStore(){state={...defaults};try{localStorage.removeItem("kumbha-demo-v1");}catch { /* storage is optional in this demo */ }emit();}
 export function subscribeDemoStore(fn:()=>void){listeners.add(fn);return()=>listeners.delete(fn);}
 export function useDemoStore(){return useSyncExternalStore(subscribeDemoStore,getDemoState,()=>defaults);}
