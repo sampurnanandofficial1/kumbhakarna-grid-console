@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   Activity,
   AlertTriangle,
@@ -1302,8 +1302,8 @@ function FlexPage() {
                         offset: -4,
                       }}
                     />
-                    <YAxis />
-                    <Tooltip />
+                    <YAxis tickFormatter={(value: number) => String(value.toFixed(1)) + " kVA"} />
+                    <Tooltip formatter={(value) => String(Number(value).toFixed(2)) + " kVA"} />
                     <Legend />
                     <Line dataKey="naive" name="Naive" stroke="#C8423F" dot={false} />
                     <Line dataKey="half" name="Staggered half" stroke="#E39B1B" dot={false} />
@@ -1641,7 +1641,7 @@ function HouseholdPage() {
   );
 }
 function ConsolePage() {
-  const [feeder] = useState<DT[]>(() => buildDemoFeeder()),
+  const feeder = useMemo<DT[]>(() => buildDemoFeeder(), []),
     [selected, setSelected] = useState("DT-0412"),
     [requested, setRequested] = useState(15),
     [time, setTime] = useState("18:45"),
@@ -1660,17 +1660,24 @@ function ConsolePage() {
   useEffect(() => {
     hydrateDemoStore();
   }, []);
-  const refreshSolar = async () => {
+  const refreshSolar = useCallback(async () => {
     setWeatherBusy(true);
     try {
-      setSolar(await loadSolar(CITIES.find((c) => c.name === city) ?? CITIES[0]!, threshold));
+      const targetEnergyKWh = event?.dispatchedEnergyKWh ?? 1.4;
+      setSolar(
+        await loadSolar(
+          CITIES.find((c) => c.name === city) ?? CITIES[0]!,
+          threshold,
+          targetEnergyKWh,
+        ),
+      );
     } finally {
       setWeatherBusy(false);
     }
-  };
+  }, [city, threshold, event?.dispatchedEnergyKWh]);
   useEffect(() => {
     void refreshSolar();
-  }, [city, threshold]);
+  }, [refreshSolar]);
   const send = () => {
     if (dt.group !== "Treated" || dt.status === "No comms") return;
     const x = runConsoleEvent({
@@ -2076,7 +2083,7 @@ function ConsolePage() {
         {solar && (
           <>
             <div className="kpi-grid kpi-grid-3">
-              <KpiCard label="Solar window" value={solar.window.label} provenance={solar.mode} />
+              <KpiCard label="Solar window · tomorrow IST" value={solar.date + " · " + solar.window.label} provenance={solar.mode} />
               <KpiCard
                 label="Energy moved"
                 value={fmt(solar.movedKWh, 1)}
@@ -2086,13 +2093,13 @@ function ConsolePage() {
               <KpiCard label="Threshold" value={threshold} unit="W/m²" provenance="ILLUSTRATIVE" />
             </div>
             <ChartCard
-              title="Tomorrow's irradiance and recharge schedule"
+              title={"Tomorrow's irradiance and recharge schedule · " + solar.date + " IST"}
               subtitle="Hourly shortwave radiation (W/m²) and illustrative scheduled recharge (kW)"
               provenance={solar.mode}
               summary={
                 solar.window.fallback
-                  ? "No contiguous solar window met the threshold; the off-peak 23:00–05:00 window is used."
-                  : "Recharge is spread across the longest contiguous solar window above the selected threshold."
+                  ? "No solar window met the threshold; the six-hour off-peak window is used."
+                  : "Recharge is spread across the longest qualifying window and sized to " + solar.movedKWh.toFixed(2) + " kWh of pending event energy."
               }
             >
               <ClientOnly>
@@ -2118,7 +2125,7 @@ function ConsolePage() {
               </ClientOnly>
             </ChartCard>
             <p className="small-note">
-              Weather data by{" "}
+              Weather data for {solar.date} (Asia/Kolkata) by{" "}
               <a href="https://open-meteo.com/" target="_blank" rel="noreferrer">
                 Open-Meteo.com
               </a>{" "}
