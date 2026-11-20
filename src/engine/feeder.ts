@@ -18,14 +18,14 @@ export function buildDemoFeeder(seed=2026):DT[]{
 }
 export type EventRequest={dt:DT;requestedKVA:number;time:string;durationMin:15|30;holdoutPct:number;reserveFloor:number;p90OutageHours:number;criticalBackup:boolean;optOutNext:boolean;feePerDTYear?:number;eventsPerYear?:number;endStrategy:"Naive"|"Staggered half"|"Staggered deferred";};
 export function runConsoleEvent(req:EventRequest):ConsoleEvent{
- const {dt}=req,eventId="EV-"+hashSeed([dt.id,req.time,req.requestedKVA,req.durationMin,req.holdoutPct,req.reserveFloor].join("|")).toString(16).toUpperCase();
+ const {dt}=req,eventId="EV-"+hashSeed([dt.id,req.time,req.requestedKVA,req.durationMin,req.holdoutPct,req.reserveFloor,req.sequence??0].join("|")).toString(16).toUpperCase();
  const r=mulberry32(hashSeed(eventId)),invHomes=Math.round(dt.homes*dt.inverterShare),enrolled=Math.ceil(invHomes*dt.enrolment);
  const homes:FlexHome[]=createFlexPopulation({homes:dt.homes,inverterShare:dt.inverterShare,enrolment:dt.enrolment,durationMin:req.durationMin,reserveFloor:req.reserveFloor,p90OutageHours:req.p90OutageHours,criticalShare:0,events:1,seed:hashSeed(eventId)});
  const persona:FlexHome={id:"H-0412-017",basicKW:.24,coolerWired:true,backedKW:.42,ratingVA:1100,critical:false};
  if(dt.id==="DT-0412"&&!homes.some(h=>h.id===persona.id))homes[0]=persona;else if(dt.id==="DT-0412")homes[16]=persona;
  const multiplier=Math.max(.7,Math.min(1.3,normal(r,1,.1))),eligible:{home:FlexHome;preSOC:number;relief:number;energy:number;reserve:number;projected:number;reason:string}[]=[];
  for(let i=0;i<homes.length;i++){
-  const h=homes[i],preSOC=h.id==="H-0412-017"?.92:uniform(r,.84,1),noise=uniform(r,.85,1.15);
+  const h=homes[i];if(!h)continue;const preSOC=h.id==="H-0412-017"?.92:uniform(r,.84,1),noise=uniform(r,.85,1.15);
   const result=evaluateFlexHome(h,{multiplier,noise,preSOC,optedOut:h.id==="H-0412-017"&&req.optOutNext?true:bernoulli(r,.1),commsFailed:bernoulli(r,.03),healthExcluded:bernoulli(r,.05),reserveFloor:h.id==="H-0412-017"?Math.max(req.reserveFloor,.65):req.reserveFloor,p90OutageHours:req.p90OutageHours,durationMin:req.durationMin,criticalBackup:h.id==="H-0412-017"?req.criticalBackup:bernoulli(r,0)});
   eligible.push({home:h,preSOC,relief:result.reliefKVA,energy:result.energyKWh,reserve:result.reserve,projected:result.projectedSOC,reason:result.eligible?"Eligible":result.reason});
  }

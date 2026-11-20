@@ -1,7 +1,7 @@
 import {useSyncExternalStore} from "react";
 export type StoredEvent={id:string;status:string;time:string;duration:number;credit:number;reason?:string;dtId?:string};
-export type DemoState={reservePercent:number;criticalBackup:boolean;optOutNext:boolean;credits:number;events:StoredEvent[];notice:{time:string;duration:number;status:"pending"|"blocked"|"accepted";reason:string;projected:number;reserve:number}|null;lastEvent:unknown|null;eventLog:unknown[];tourStep:number};
-const defaults:DemoState={reservePercent:65,criticalBackup:false,optOutNext:false,credits:0,events:[],notice:null,lastEvent:null,eventLog:[],tourStep:0};
+export type DemoState={reservePercent:number;criticalBackup:boolean;optOutNext:boolean;credits:number;events:StoredEvent[];notice:{time:string;duration:number;status:"pending"|"blocked"|"accepted";reason:string;projected:number;reserve:number}|null;lastEvent:unknown|null;eventLog:unknown[];tourStep:number;flexFirmKVA:number|null};
+const defaults:DemoState={reservePercent:65,criticalBackup:false,optOutNext:false,credits:0,events:[],notice:null,lastEvent:null,eventLog:[],tourStep:0,flexFirmKVA:null};
 let state:DemoState={...defaults};
 const listeners=new Set<()=>void>();
 function emit(){listeners.forEach(fn=>fn());}
