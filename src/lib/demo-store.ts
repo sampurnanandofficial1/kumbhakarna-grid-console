@@ -15,6 +15,7 @@ export type DemoState = {
   credits: number;
   events: StoredEvent[];
   notice: {
+    eventId?: string;
     time: string;
     duration: number;
     status: "pending" | "blocked" | "accepted";
