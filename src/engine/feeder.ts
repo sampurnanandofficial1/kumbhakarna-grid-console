@@ -1,5 +1,11 @@
 import { mulberry32, normal, uniform, bernoulli, choice, hashSeed, mean } from "./rng";
-import { createFlexPopulation, evaluateFlexHome, runFlexEvents, simulateRebound, type FlexHome } from "./flex";
+import {
+  createFlexPopulation,
+  evaluateFlexHome,
+  runFlexEvents,
+  simulateRebound,
+  type FlexHome,
+} from "./flex";
 import { DEFAULT_FLEX, type FlexResult } from "./flex";
 import { HOUSEHOLD_PERSONA } from "../data/persona";
 export type DT = {

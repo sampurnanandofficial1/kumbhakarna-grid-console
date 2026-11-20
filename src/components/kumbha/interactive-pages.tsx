@@ -581,14 +581,16 @@ function RestorationLab() {
                           <YAxis />
                           <Tooltip />
                           <Legend />
-                          {([
-                            ["basic", "#8C9C93"],
-                            ["coolers", "#77A88A"],
-                            ["refrigerators", "#2F7FB5"],
-                            ["acs", "#E39B1B"],
-                            ["pumps", "#A58BCB"],
-                            ["recharge", "#C8423F"],
-                          ] as const).map(([k, c]) => (
+                          {(
+                            [
+                              ["basic", "#8C9C93"],
+                              ["coolers", "#77A88A"],
+                              ["refrigerators", "#2F7FB5"],
+                              ["acs", "#E39B1B"],
+                              ["pumps", "#A58BCB"],
+                              ["recharge", "#C8423F"],
+                            ] as const
+                          ).map(([k, c]) => (
                             <Area
                               key={k}
                               dataKey={k}
@@ -2086,7 +2088,11 @@ function ConsolePage() {
         {solar && (
           <>
             <div className="kpi-grid kpi-grid-3">
-              <KpiCard label="Solar window · tomorrow IST" value={solar.date + " · " + solar.window.label} provenance={solarProvenance} />
+              <KpiCard
+                label="Solar window · tomorrow IST"
+                value={solar.date + " · " + solar.window.label}
+                provenance={solarProvenance}
+              />
               <KpiCard
                 label="Energy moved"
                 value={fmt(solar.movedKWh, 1)}
@@ -2102,7 +2108,9 @@ function ConsolePage() {
               summary={
                 solar.window.fallback
                   ? "No solar window met the threshold; the six-hour off-peak window is used."
-                  : "Recharge is spread across the longest qualifying window and sized to " + solar.movedKWh.toFixed(2) + " kWh of pending event energy."
+                  : "Recharge is spread across the longest qualifying window and sized to " +
+                    solar.movedKWh.toFixed(2) +
+                    " kWh of pending event energy."
               }
             >
               <ClientOnly>

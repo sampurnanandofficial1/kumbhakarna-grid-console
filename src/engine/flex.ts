@@ -195,14 +195,10 @@ export function simulateRebound(
             fraction = 0.5;
           }
           if (minute >= start && currentSOC < 0.995) {
-            const taper =
-              currentSOC <= 0.8 ? 1 : Math.max(0.1, (1 - currentSOC) / 0.2);
+            const taper = currentSOC <= 0.8 ? 1 : Math.max(0.1, (1 - currentSOC) / 0.2);
             const inputKW = ((fraction * home.amps * 14) / 1000) * taper;
             kva += inputKW / (0.82 * 0.75);
-            states[i] = Math.min(
-              0.995,
-              currentSOC + (inputKW * 0.88) / 60 / 1.8,
-            );
+            states[i] = Math.min(0.995, currentSOC + (inputKW * 0.88) / 60 / 1.8);
           }
         }
         draws[minute] = kva;
@@ -237,7 +233,7 @@ export function simulateRebound(
     socDeferred: (socSums[2] ?? 0) / 50,
     series,
   };
-} 
+}
 export function runFlexEvents(input: FlexInput): FlexResult {
   const homes = createFlexPopulation(input, hashSeed("flex-population:" + input.seed));
   const r = mulberry32(hashSeed("flex-events:" + input.seed));

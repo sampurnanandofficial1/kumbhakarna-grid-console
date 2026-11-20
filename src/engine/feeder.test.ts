@@ -36,7 +36,9 @@ describe("feeder firm capacity", () => {
       }).p90FirmKVA;
       expect(transformer.firmP90KVA).toBe(expected);
     }
-    expect(feeder.filter((item) => item.group === "Control").every((item) => item.firmP90KVA === 0)).toBe(true);
+    expect(
+      feeder.filter((item) => item.group === "Control").every((item) => item.firmP90KVA === 0),
+    ).toBe(true);
   });
 });
 
