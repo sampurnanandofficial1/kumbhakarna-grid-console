@@ -1,0 +1,40 @@
+name: Prototype quality gates
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Install
+        run: bun install --frozen-lockfile
+      - name: Production build
+        run: bun run build
+      - name: Lint
+        run: bun run lint
+      - name: Unit tests
+        run: bun run test
+      - name: SSR smoke test all routes
+        shell: bash
+        run: |
+          bun run dev -- --host 127.0.0.1 --port 4173 --strictPort > /tmp/kumbha-vite.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill $SERVER_PID 2>/dev/null || true' EXIT
+          for i in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:4173/ >/dev/null; then break; fi
+            sleep 2
+          done
+          for route in / /restoration /scenarios /flex /household /console /economics /method; do
+            code=$(curl -sS -o /tmp/kumbha-page.html -w '%{http_code}' "http://127.0.0.1:4173$route")
+            echo "$route -> $code"
+            test "$code" = "200"
+          done
+          if grep -E 'Internal Server Error|Unhandled exception' /tmp/kumbha-vite.log; then exit 1; fi

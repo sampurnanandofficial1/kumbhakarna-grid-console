@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState } from "react";\nimport { InteractivePage } from "./interactive-pages";
 import { ArrowRight, BatteryCharging, CheckCircle2, CircleHelp, Gauge, ShieldCheck, Zap } from "lucide-react";
 import { reference } from "../../data/reference";
 import { sourceById } from "../../data/sources";
@@ -15,7 +15,7 @@ const sensitivity = reference.calibrationTargets.sensitivityGrid as number[][];
 export function PageScreen({page}:{page:"overview"|PageId}) {
   if(page==="overview") return <Overview/>;
   if(page==="method") return <Method/>;
-  return <Placeholder page={page}/>;
+  return <InteractivePage page={page}/>;
 }
 function Overview() {
   const chart = [{minute:0,control:106,smart:106},{minute:15,control:127,smart:115},{minute:30,control:126,smart:116},{minute:60,control:121,smart:113},{minute:90,control:113,smart:108},{minute:120,control:108,smart:104},{minute:180,control:101,smart:99},{minute:240,control:96,smart:95}];
