@@ -19,7 +19,8 @@ export function percentile(values: number[], p: number): number {
   if (!values.length) return 0;
   const sorted = [...values].sort((a,b)=>a-b);
   const pos = (sorted.length - 1) * p, lo = Math.floor(pos), hi = Math.ceil(pos);
-  const lower=sorted[lo]??0, upper=sorted[hi]??lower;\n  return lower + (upper - lower) * (pos - lo);
+  const lower=sorted[lo]??0, upper=sorted[hi]??lower;
+  return lower + (upper - lower) * (pos - lo);
 }
 export const mean = (values: number[]) => values.length ? values.reduce((a,b)=>a+b,0)/values.length : 0;
 export function hashSeed(value: string): number {

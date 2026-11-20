@@ -55,7 +55,7 @@ function runStrategy(homes:Home[],input:RestorationInput,key:StrategyKey,preLoad
     let f=chargerFraction(h,t,currentSOC,key,prevLoad);
     if(currentSOC>=PARAMS.fullSOC&&key!=="COUNTERFACTUAL"){f=0;pCharge+=.01;qCharge+=qFrom(.01,PARAMS.chargerPF);}
     else if(f>0){
-     const taper=soc[i]<=PARAMS.taperStartSOC?1:Math.max(PARAMS.taperFloor,(1-currentSOC)/.2);
+     const taper=currentSOC<=PARAMS.taperStartSOC?1:Math.max(PARAMS.taperFloor,(1-currentSOC)/.2);
      const bulkDC=h.amps*PARAMS.chargeVoltage/1000;
      const dc=f*bulkDC*taper;
      const ac=dc/PARAMS.chargerEfficiency;
