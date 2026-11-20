@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
-import { Activity, BatteryCharging, Bolt, ChevronRight, Menu, RotateCcw, Sparkles, X } from "lucide-react";\nimport { resetDemoStore } from "../../lib/demo-store";
+import { Activity, BatteryCharging, Bolt, ChevronRight, Menu, RotateCcw, Sparkles, X } from "lucide-react";
+import { resetDemoStore } from "../../lib/demo-store";
 import type { Provenance } from "../../data/reference";
 
 const nav = [

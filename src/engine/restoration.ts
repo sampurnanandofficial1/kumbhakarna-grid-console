@@ -44,15 +44,16 @@ function runStrategy(homes:Home[],input:RestorationInput,key:StrategyKey,preLoad
  for(let t=0;t<240;t++){
   let pBasic=0,qBasic=0,pCool=0,qCool=0,pFridge=0,qFridge=0,pAc=0,qAc=0,pPump=0,qPump=0,pCharge=0,qCharge=0;
   for(let i=0;i<homes.length;i++){
-   const h=homes[i];
+   const h=homes[i];if(!h)continue;
    pBasic+=h.basic+h.misc;qBasic+=qFrom(h.basic,.87)+qFrom(h.misc,.9);
    if(h.cooler&&(h.coolerWired||t>=h.coolerStart)){pCool+=.18;qCool+=qFrom(.18,.85);}
    if(h.fridge){const d=t<h.fridgeRecovery?1:.5;pFridge+=.12*d;qFridge+=qFrom(.12*d,.75);}
    if(h.ac>0&&t>=h.acStart){const d=t<h.acStart+h.acFull?1:.7;pAc+=h.ac*d;qAc+=qFrom(h.ac*d,.9);}
    if(h.pump&&t>=h.pumpStart&&t<h.pumpStart+h.pumpDuration){pPump+=.75;qPump+=qFrom(.75,.8);}
    if(h.inv){
-    let f=chargerFraction(h,t,soc[i],key,prevLoad);
-    if(soc[i]>=PARAMS.fullSOC&&key!=="COUNTERFACTUAL"){f=0;pCharge+=.01;qCharge+=qFrom(.01,PARAMS.chargerPF);}
+    const currentSOC=soc[i]??0;
+    let f=chargerFraction(h,t,currentSOC,key,prevLoad);
+    if(currentSOC>=PARAMS.fullSOC&&key!=="COUNTERFACTUAL"){f=0;pCharge+=.01;qCharge+=qFrom(.01,PARAMS.chargerPF);}
     else if(f>0){
      const taper=soc[i]<=PARAMS.taperStartSOC?1:Math.max(PARAMS.taperFloor,(1-currentSOC)/.2);
      const bulkDC=h.amps*PARAMS.chargeVoltage/1000;
@@ -71,7 +72,7 @@ function runStrategy(homes:Home[],input:RestorationInput,key:StrategyKey,preLoad
   const denom=kva||1;
   for(const [name,p,q] of [["basic",pBasic,qBasic],["coolers",pCool,qCool],["refrigerators",pFridge,qFridge],["acs",pAc,qAc],["pumps",pPump,qPump],["recharge",pCharge,qCharge]] as const)components[name].push(Math.hypot(p,q)/denom*kva);
   if(t===60&&invCount)ready60=homes.reduce((a,h,i)=>a+(h.inv&&(soc[i]??0)>=.7?1:0),0)/invCount;
-  if(t===120&&invCount)ready120=homes.reduce((a,h,i)=>a+(h.inv&&soc[i]>=.7?1:0),0)/invCount;
+  if(t===120&&invCount)ready120=homes.reduce((a,h,i)=>a+(h.inv&&(soc[i]??0)>=.7?1:0),0)/invCount;
   prevLoad=load;
  }
  return {loading,hotSpot,components,peak,min100,min120,overload,aging,maxHot,ready60:invCount?ready60:null,ready120:invCount?ready120:null,preLoad};
@@ -92,7 +93,7 @@ export async function simulateRestoration(input:RestorationInput,onProgress?:(do
   let p=0,q=0;
   for(const h of homes){p+=h.basic+h.misc+(h.cooler?.18:0)+(h.fridge?.12*.5:0)+h.ac*.7+(h.inv?.01:0);q+=qFrom(h.basic,.87)+qFrom(h.misc,.9)+(h.cooler?qFrom(.18,.85):0)+(h.fridge?qFrom(.06,.75):0)+qFrom(h.ac*.7,.9)+(h.inv?qFrom(.01,.75):0);}
   const preLoad=Math.hypot(p,q)/PARAMS.ratedKVA*100;preLoads.push(preLoad);
-  for(const key of keys)collected[key].push(runStrategy(homes,input,key,preLoad));
+  for(const key of keys)collected[key]!.push(runStrategy(homes,input,key,preLoad));
   onProgress?.(run+1,input.runs);
   if(run<input.runs-1)await new Promise<void>(resolve=>setTimeout(resolve,0));
  }

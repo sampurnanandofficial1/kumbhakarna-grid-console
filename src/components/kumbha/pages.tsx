@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";\nimport { InteractivePage } from "./interactive-pages";
+import { useMemo, useState } from "react";
+import { InteractivePage } from "./interactive-pages";
 import { ArrowRight, BatteryCharging, CheckCircle2, CircleHelp, Gauge, ShieldCheck, Zap } from "lucide-react";
 import { reference } from "../../data/reference";
 import { sourceById } from "../../data/sources";
