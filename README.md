@@ -1,24 +1,26 @@
-# Kumbhakarna Grid Console
+# Kumbhakarna Grid-Edge Console
 
-Create a minimal blank app titled "Kumbhakarna Grid-Edge Console". One page only, with the heading "Kumbhakarna Grid-Edge Console" and the line "Prototype loading". Use the default template. Do not add a backend, database, authentication, Lovable Cloud, AI features, images or any other pages.
+A frontend-only simulation prototype for Project Kumbhakarna. It demonstrates two coordinated control loops on compatible residential inverters: Smart Recharge after outages and short Battery-Switch flexibility on a DISCOM request, with an on-device Reserve Guard protecting household backup.
 
-This project was built with [Lovable](https://lovable.dev).
+## Run locally
+Requires Bun. Install and run:
 
-## Build with Lovable
-
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/77dde7c2-caf5-42a1-9530-0e7040c7447a).
-
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
-
-## Development
-
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
-
-```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
-npm run dev
+```bash
+bun install
+bun run dev
+bun run build
+bun run lint
+bun x vitest run
 ```
+
+## About this prototype
+- Eight-page experience: Overview, Restoration Lab, 81 Scenarios, Flex Events, Household App, DISCOM Console, Business Case and Method & Evidence.
+- Deterministic seeded browser simulation; no backend, database, authentication, API keys or personal data.
+- Open-Meteo is the only permitted external request, used for a 48-hour solar forecast with a six-second timeout and modelled fallback.
+- All outputs are explicitly labelled PUBLISHED, TEAM MODEL, SIMULATED, ILLUSTRATIVE or LIVE.
+- No live device or utility-system connection. No field performance is claimed.
+- Reserve Guard uses projected post-event SOC ≥ household reserve; event energy is not double-counted.
+- Deferral value is a one-time timing benefit; BESS benchmarks are different services and are not directly interchangeable.
+
+## Credits
+Team AA Jewels · IIM Lucknow · Yuva Yodha Energy Tech Hackathon by Schneider Electric · Challenge 03.
