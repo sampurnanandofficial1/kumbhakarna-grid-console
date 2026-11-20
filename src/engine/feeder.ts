@@ -18,7 +18,7 @@ export function buildDemoFeeder(seed=2026):DT[]{
 }
 export type EventRequest={dt:DT;requestedKVA:number;time:string;durationMin:15|30;holdoutPct:number;reserveFloor:number;p90OutageHours:number;criticalBackup:boolean;optOutNext:boolean;feePerDTYear?:number;eventsPerYear?:number;endStrategy:"Naive"|"Staggered half"|"Staggered deferred";};
 export function runConsoleEvent(req:EventRequest):ConsoleEvent{
- const {dt}=req,eventId="EV-"+Date.now().toString(36).toUpperCase()+"-"+Math.floor(Math.random()*9999).toString().padStart(4,"0");
+ const {dt}=req,eventId="EV-"+hashSeed([dt.id,req.time,req.requestedKVA,req.durationMin,req.holdoutPct,req.reserveFloor].join("|")).toString(16).toUpperCase();
  const r=mulberry32(hashSeed(eventId)),invHomes=Math.round(dt.homes*dt.inverterShare),enrolled=Math.ceil(invHomes*dt.enrolment);
  const homes:FlexHome[]=createFlexPopulation({homes:dt.homes,inverterShare:dt.inverterShare,enrolment:dt.enrolment,durationMin:req.durationMin,reserveFloor:req.reserveFloor,p90OutageHours:req.p90OutageHours,criticalShare:0,events:1,seed:hashSeed(eventId)});
  const persona:FlexHome={id:"H-0412-017",basicKW:.24,coolerWired:true,backedKW:.42,ratingVA:1100,critical:false};
@@ -31,7 +31,7 @@ export function runConsoleEvent(req:EventRequest):ConsoleEvent{
  }
  const eligibleHomes=eligible.filter(x=>x.reason==="Eligible"),holdout=eligibleHomes.filter(()=>bernoulli(r,req.holdoutPct/100)),holdIds=new Set(holdout.map(x=>x.home.id)),dispatched=eligibleHomes.filter(x=>!holdIds.has(x.home.id));
  const deliveredTrueKVA=dispatched.reduce((s,x)=>s+x.relief,0),deviceMeteredKVA=deliveredTrueKVA*(1+normal(r,0,.025)),smartMeterCheckKVA=deliveredTrueKVA*(1+normal(r,0,.03));
- const grid=(x:typeof eligible[number])=>x.home.backedKW+normal(r,0,.03),holdGrid=holdout.map(grid),dispatchGrid=dispatched.map(grid),holdDiff=mean(holdGrid)-mean(dispatchGrid),holdoutEstimateKVA=holdout.length&&dispatched.length?holdDiff*dispatched.length/.87:deliveredTrueKVA,holdoutCI=holdout.length&&dispatched.length?1.96*Math.sqrt((variance(holdGrid)/holdGrid.length)+(variance(dispatchGrid)/dispatchGrid.length))*dispatched.length/.87:0;
+ const holdGrid=holdout.map(x=>x.home.backedKW+normal(r,0,.03)),dispatchGrid=dispatched.map(()=>Math.max(0,normal(r,0,.03))),holdDiff=mean(holdGrid)-mean(dispatchGrid),holdoutEstimateKVA=holdout.length&&dispatched.length?holdDiff*dispatched.length/.87:deliveredTrueKVA,holdoutCI=holdout.length&&dispatched.length?1.96*Math.sqrt((variance(holdGrid)/holdGrid.length)+(variance(dispatchGrid)/dispatchGrid.length))*dispatched.length/.87:0;
  const rebound=simulateRebound(hashSeed(eventId)+9,dt.enrolment,req.durationMin,Math.max(15,dispatched.length));
  const reboundKVA=req.endStrategy==="Naive"?rebound.naive:req.endStrategy==="Staggered half"?rebound.staggeredHalf:rebound.deferred;
  const creditPerHome=(.3*(req.feePerDTYear??15000)/(req.eventsPerYear??20))/Math.max(1,dispatched.length),creditsPaid=creditPerHome*dispatched.length;
