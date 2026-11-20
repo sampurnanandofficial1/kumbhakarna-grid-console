@@ -14,12 +14,12 @@ export function normal(r: () => number, mean = 0, sd = 1): number {
   return mean + sd * Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
 }
 export const bernoulli = (r: () => number, p: number) => r() < p;
-export const choice = <T,>(r: () => number, values: readonly T[]): T => values[Math.floor(r() * values.length)];
+export const choice = <T,>(r: () => number, values: readonly T[]): T => values[Math.min(values.length-1,Math.floor(r() * values.length))]!;
 export function percentile(values: number[], p: number): number {
   if (!values.length) return 0;
   const sorted = [...values].sort((a,b)=>a-b);
   const pos = (sorted.length - 1) * p, lo = Math.floor(pos), hi = Math.ceil(pos);
-  return sorted[lo] + (sorted[hi] - sorted[lo]) * (pos - lo);
+  const lower=sorted[lo]??0, upper=sorted[hi]??lower;\n  return lower + (upper - lower) * (pos - lo);
 }
 export const mean = (values: number[]) => values.length ? values.reduce((a,b)=>a+b,0)/values.length : 0;
 export function hashSeed(value: string): number {

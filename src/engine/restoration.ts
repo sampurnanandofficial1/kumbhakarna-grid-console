@@ -39,7 +39,7 @@ function runStrategy(homes:Home[],input:RestorationInput,key:StrategyKey,preLoad
  let thermal=initThermal(preLoad,input.ambientC,input.thermalDesign);
  for(let i=0;i<outage;i++)thermal=stepThermal(thermal,0,input.ambientC,input.thermalDesign).state;
  const loading:number[]=[],hotSpot:number[]=[];
- const components={basic:[],coolers:[],refrigerators:[],acs:[],pumps:[],recharge:[]};
+ const components:RunSeries["components"]={basic:[],coolers:[],refrigerators:[],acs:[],pumps:[],recharge:[]};
  let prevLoad=preLoad,aging=0,maxHot=-Infinity,min100=0,min120=0,overload=0,peak=0,ready60=0,ready120=0,invCount=homes.filter(h=>h.inv).length;
  for(let t=0;t<240;t++){
   let pBasic=0,qBasic=0,pCool=0,qCool=0,pFridge=0,qFridge=0,pAc=0,qAc=0,pPump=0,qPump=0,pCharge=0,qCharge=0;
@@ -54,12 +54,12 @@ function runStrategy(homes:Home[],input:RestorationInput,key:StrategyKey,preLoad
     let f=chargerFraction(h,t,soc[i],key,prevLoad);
     if(soc[i]>=PARAMS.fullSOC&&key!=="COUNTERFACTUAL"){f=0;pCharge+=.01;qCharge+=qFrom(.01,PARAMS.chargerPF);}
     else if(f>0){
-     const taper=soc[i]<=PARAMS.taperStartSOC?1:Math.max(PARAMS.taperFloor,(1-soc[i])/.2);
+     const taper=soc[i]<=PARAMS.taperStartSOC?1:Math.max(PARAMS.taperFloor,(1-currentSOC)/.2);
      const bulkDC=h.amps*PARAMS.chargeVoltage/1000;
      const dc=f*bulkDC*taper;
      const ac=dc/PARAMS.chargerEfficiency;
      pCharge+=ac;qCharge+=qFrom(ac,PARAMS.chargerPF);
-     soc[i]=Math.min(PARAMS.fullSOC,soc[i]+f*bulkDC*taper*PARAMS.chargeAcceptance/60/PARAMS.batteryKWh);
+     soc[i]=Math.min(PARAMS.fullSOC,currentSOC+f*bulkDC*taper*PARAMS.chargeAcceptance/60/PARAMS.batteryKWh);
     }
    }
   }
@@ -70,16 +70,16 @@ function runStrategy(homes:Home[],input:RestorationInput,key:StrategyKey,preLoad
   if(load>100)min100++;if(load>120)min120++;overload+=Math.max(0,kva-PARAMS.ratedKVA)/60;
   const denom=kva||1;
   for(const [name,p,q] of [["basic",pBasic,qBasic],["coolers",pCool,qCool],["refrigerators",pFridge,qFridge],["acs",pAc,qAc],["pumps",pPump,qPump],["recharge",pCharge,qCharge]] as const)components[name].push(Math.hypot(p,q)/denom*kva);
-  if(t===60&&invCount)ready60=homes.reduce((a,h,i)=>a+(h.inv&&soc[i]>=.7?1:0),0)/invCount;
+  if(t===60&&invCount)ready60=homes.reduce((a,h,i)=>a+(h.inv&&(soc[i]??0)>=.7?1:0),0)/invCount;
   if(t===120&&invCount)ready120=homes.reduce((a,h,i)=>a+(h.inv&&soc[i]>=.7?1:0),0)/invCount;
   prevLoad=load;
  }
  return {loading,hotSpot,components,peak,min100,min120,overload,aging,maxHot,ready60:invCount?ready60:null,ready120:invCount?ready120:null,preLoad};
 }
-const avgSeries=(runs:RunSeries[],key:"loading"|"hotSpot",p?:number)=>Array.from({length:240},(_,i)=>p===undefined?mean(runs.map(x=>x[key][i])):percentile(runs.map(x=>x[key][i]),p));
+const avgSeries=(runs:RunSeries[],key:"loading"|"hotSpot",p?:number)=>Array.from({length:240},(_,i)=>p===undefined?mean(runs.map(x=>x[key][i]??0)):percentile(runs.map(x=>x[key][i]),p));
 function aggregate(key:StrategyKey,runs:RunSeries[]):StrategyResult{
  const peaks=runs.map(x=>x.peak);
- const med=percentile(peaks,.5),rep=runs.reduce((best,x)=>Math.abs(x.peak-med)<Math.abs(best.peak-med)?x:best,runs[0]);
+ const med=percentile(peaks,.5),base=runs[0];if(!base)throw new Error("No restoration runs to aggregate");const rep=runs.reduce((best,x)=>Math.abs(x.peak-med)<Math.abs(best.peak-med)?x:best,base);
  return {key,label:PARAMS.strategyLabels[key],peakPct:mean(peaks),peakP90:percentile(peaks,.9),minAbove100:mean(runs.map(x=>x.min100)),minAbove120:mean(runs.map(x=>x.min120)),overloadKVAh:mean(runs.map(x=>x.overload)),ageingEqMin:mean(runs.map(x=>x.aging)),maxHotSpotC:mean(runs.map(x=>x.maxHot)),ready60:key==="COUNTERFACTUAL"?null:mean(runs.map(x=>x.ready60||0)),ready120:key==="COUNTERFACTUAL"?null:mean(runs.map(x=>x.ready120||0)),loading:avgSeries(runs,"loading"),loadingP10:avgSeries(runs,"loading",.1),loadingP90:avgSeries(runs,"loading",.9),hotSpot:avgSeries(runs,"hotSpot"),components:rep.components};
 }
 export async function simulateRestoration(input:RestorationInput,onProgress?:(done:number,total:number)=>void,cancelled?:()=>boolean):Promise<RestorationResult>{
@@ -96,7 +96,7 @@ export async function simulateRestoration(input:RestorationInput,onProgress?:(do
   onProgress?.(run+1,input.runs);
   if(run<input.runs-1)await new Promise<void>(resolve=>setTimeout(resolve,0));
  }
- const results=keys.map(k=>aggregate(k,collected[k]));
+ const results=keys.map(k=>aggregate(k,collected[k]??[]));
  const no=results.find(x=>x.key==="NO_CONTROL"),cf=results.find(x=>x.key==="COUNTERFACTUAL");
  const share=no&&cf&&no.overloadKVAh>0?(no.overloadKVAh-cf.overloadKVAh)/no.overloadKVAh:0;
  return {input,preLoadPct:mean(preLoads),results,inverterShareOfOverload:share,completedRuns:input.runs,durationMs:Date.now()-started};

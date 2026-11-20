@@ -42,13 +42,13 @@ export function simulateRebound(seed:number,enrolment:number,durationMin:number,
    for(let t=0;t<90;t++){
     let kva=0;
     for(let i=0;i<homes.length;i++){
-     const h=homes[i];let start=0,f=1;
+     const h=homes[i];if(!h)continue;const currentSOC=states[i]??0;let start=0,f=1;
      if(mode===1){start=h.end+h.wait;f=.5;}
-     if(mode===2){start=states[i]<.75?h.end+h.wait:999;f=.5;}
-     if(t>=start&&states[i]<.995){
-      const taper=states[i]<=.8?1:Math.max(.1,(1-states[i])/.2);
+     if(mode===2){start=currentSOC<.75?h.end+h.wait:999;f=.5;}
+     if(t>=start&&currentSOC<.995){
+      const taper=currentSOC<=.8?1:Math.max(.1,(1-currentSOC)/.2);
       const kw=f*h.amps*14/1000*taper/.82;
-      kva+=kw/.75;states[i]=Math.min(.995,states[i]+f*h.amps*14/1000*taper*.88/60/1.8);
+      kva+=kw/.75;states[i]=Math.min(.995,currentSOC+f*h.amps*14/1000*taper*.88/60/1.8);
      }
     }
     draws.push(kva);peak=Math.max(peak,kva);
@@ -85,6 +85,6 @@ export async function simulateFlex(input:FlexInput,onProgress?:(done:number,tota
  const averageKVA=mean(totals),p90FirmKVA=percentile(totals,.1),meanAvailableHomes=mean(availableCounts),availabilityPct=enrolled?meanAvailableHomes/enrolled*100:0,meanEnergyKWh=mean(energyTotals);
  const funnel=[{label:"Inverter homes",count:Math.round(input.homes*input.inverterShare)},{label:"Enrolled",count:enrolled},{label:"After opt-out",count:Math.round(enrolled*(1-(input.optOut??.1)))},{label:"After comms",count:Math.round(enrolled*(1-(input.optOut??.1))*(1-(input.commsFailure??.03)))},{label:"After health",count:Math.round(enrolled*(1-(input.optOut??.1))*(1-(input.commsFailure??.03))*(1-(input.healthExclusion??.05)))},{label:"After Reserve Guard",count:Math.round(meanAvailableHomes)}];
  const rebound=simulateRebound(input.seed+31,input.enrolment,input.durationMin,Math.max(20,Math.round(enrolled*.8)));
- return {input,averageKVA,p90FirmKVA,percentDTLoad:p90FirmKVA/(input.homes?input.homes/332*250*.8:250)*100,meanAvailableHomes,availabilityPct,meanEnergyKWh,meanEnergyPct:meanEnergyKWh/1.8*100,funnel,events:totals,audit:lastAudit.slice(0,10),exclusions:exclusionTotals,rebound};
+ return {input,averageKVA,p90FirmKVA,percentDTLoad:p90FirmKVA/200*100,meanAvailableHomes,availabilityPct,meanEnergyKWh,meanEnergyPct:meanEnergyKWh/1.8*100,funnel,events:totals,audit:lastAudit.slice(0,10),exclusions:exclusionTotals,rebound};
 }
 export const DEFAULT_FLEX:FlexInput={homes:332,inverterShare:.5,enrolment:.4,durationMin:30,reserveFloor:.6,p90OutageHours:2,criticalShare:0,events:200,seed:2026};

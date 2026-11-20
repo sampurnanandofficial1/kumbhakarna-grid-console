@@ -9,11 +9,11 @@ function clearSky(city:City,date:Date):number[]{
 }
 export function findWindow(ghi:number[],threshold:number){
  let best={start:-1,end:-1},start=-1;
- for(let i=0;i<=ghi.length;i++){if(i<ghi.length&&ghi[i]>=threshold){if(start<0)start=i;}else if(start>=0){if(i-start>best.end-best.start)best={start,end:i};start=-1;}}
+ for(let i=0;i<=ghi.length;i++){if(i<ghi.length&&(ghi[i]??0)>=threshold){if(start<0)start=i;}else if(start>=0){if(i-start>best.end-best.start)best={start,end:i};start=-1;}}
  if(best.start<0)return {start:23,end:29,label:"23:00–05:00 off-peak",fallback:true};
  return {start:best.start,end:best.end,label:String(best.start).padStart(2,"0")+":00–"+String(best.end%24||24).padStart(2,"0")+":00",fallback:false};
 }
-export async function loadSolar(city:City=CITIES[0],threshold=400):Promise<SolarResult>{
+export async function loadSolar(city:City=CITIES[0]!,threshold=400):Promise<SolarResult>{
  const tomorrow=new Date();tomorrow.setDate(tomorrow.getDate()+1);tomorrow.setHours(0,0,0,0);
  let ghi:number[]=[],mode:"LIVE"|"MODELLED"="MODELLED";
  try{
