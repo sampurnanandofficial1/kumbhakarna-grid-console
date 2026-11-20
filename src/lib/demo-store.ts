@@ -34,8 +34,21 @@ const defaults: DemoState = {
   optOutNext: false,
   credits: 0,
   events: [
-    { id: "EV-ILLUSTRATIVE-0411", status: "Participated", time: "Yesterday · 19:00", duration: 20, credit: 4.5 },
-    { id: "EV-ILLUSTRATIVE-0408", status: "Blocked by Reserve Guard", time: "12 Nov · 18:45", duration: 30, credit: 0, reason: "Projected SOC below reserve" },
+    {
+      id: "EV-ILLUSTRATIVE-0411",
+      status: "Participated",
+      time: "Yesterday · 19:00",
+      duration: 20,
+      credit: 4.5,
+    },
+    {
+      id: "EV-ILLUSTRATIVE-0408",
+      status: "Blocked by Reserve Guard",
+      time: "12 Nov · 18:45",
+      duration: 30,
+      credit: 0,
+      reason: "Projected SOC below reserve",
+    },
   ],
   notice: null,
   lastEvent: null,
@@ -58,7 +71,12 @@ export function hydrateDemoStore() {
     const raw = localStorage.getItem("kumbha-demo-v1");
     if (raw) {
       const parsed = JSON.parse(raw) as Partial<DemoState>;
-      state = { ...defaults, ...parsed, events: parsed.events?.length ? parsed.events : defaults.events, notice: parsed.notice?.status === "pending" ? null : parsed.notice ?? null };
+      state = {
+        ...defaults,
+        ...parsed,
+        events: parsed.events?.length ? parsed.events : defaults.events,
+        notice: parsed.notice?.status === "pending" ? null : (parsed.notice ?? null),
+      };
     }
   } catch {}
   emit();

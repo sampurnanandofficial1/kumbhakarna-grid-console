@@ -69,6 +69,9 @@ type PageId = "restoration" | "scenarios" | "flex" | "household" | "console" | "
 const money = (v: number) =>
   "₹" +
   new Intl.NumberFormat("en-IN", { maximumFractionDigits: 0 }).format(Number.isFinite(v) ? v : 0);
+const moneyPrecise = (v: number) =>
+  "₹" +
+  new Intl.NumberFormat("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number.isFinite(v) ? v : 0);
 const pct = (v: number) => v.toFixed(1) + "%";
 const fmt = (v: number, d = 1) => v.toFixed(d);
 function download(name: string, body: string, type = "text/plain;charset=utf-8") {
@@ -1480,7 +1483,7 @@ function HouseholdPage() {
             <div className="phone-card credits-card">
               <div>
                 <small>Credits earned</small>
-                <b>{money(store.events.reduce((sum, item) => sum + item.credit, 0))}</b>
+                <b>{moneyPrecise(store.events.reduce((sum, item) => sum + item.credit, 0))}</b>
               </div>
               <div>
                 <small>Events this year</small>
@@ -1585,7 +1588,7 @@ function HouseholdPage() {
                       reason: "Projected SOC below reserve",
                     },
                   ]
-              ).map((e) => [e.id, e.time, e.status, money(e.credit)])}
+              ).map((e) => [e.id, e.time, e.status, moneyPrecise(e.credit)])}
             />
           </Panel>
         </div>
