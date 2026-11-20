@@ -1,5 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, notFound } from "@tanstack/react-router";
 import { PageScreen } from "../components/kumbha/pages";
+import { getPageTitle, isPageId } from "./page-ids";
+
 function Pending() {
   return (
     <main className="page-container">
@@ -8,23 +10,19 @@ function Pending() {
     </main>
   );
 }
+
 function PageRoute() {
   const { page } = Route.useParams();
-  return (
-    <PageScreen
-      page={
-        page as
-          "restoration" | "scenarios" | "flex" | "household" | "console" | "economics" | "method"
-      }
-    />
-  );
+  if (!isPageId(page)) throw notFound();
+  return <PageScreen page={page} />;
 }
+
 export const Route = createFileRoute("/$page")({
   ssr: false,
   pendingComponent: Pending,
   head: ({ params }) => ({
     meta: [
-      { title: "Kumbhakarna | " + params.page },
+      { title: "Kumbhakarna | " + getPageTitle(params.page) },
       { name: "description", content: "Kumbhakarna Grid-Edge Console prototype." },
     ],
   }),

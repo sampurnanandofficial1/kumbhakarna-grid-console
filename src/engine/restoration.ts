@@ -306,7 +306,7 @@ const avgSeries = (runs: RunSeries[], key: "loading" | "hotSpot", p?: number) =>
     p === undefined
       ? mean(runs.map((x) => x[key][i] ?? 0))
       : percentile(
-          runs.map((x) => x[key][i]),
+          runs.map((x) => x[key][i] ?? 0),
           p,
         ),
   );

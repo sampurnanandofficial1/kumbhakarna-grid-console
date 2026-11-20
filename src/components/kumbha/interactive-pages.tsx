@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   Activity,
   AlertTriangle,
@@ -330,7 +330,7 @@ function RestorationLab() {
       result
         ? Array.from({ length: 240 }, (_, i) => {
             const row: Record<string, number> = { minute: i };
-            result.results.forEach((r) => (row[r.key] = r.loading[i]));
+            result.results.forEach((r) => (row[r.key] = r.loading[i] ?? 0));
             return row;
           })
         : [],
@@ -341,7 +341,7 @@ function RestorationLab() {
       result
         ? Array.from({ length: 240 }, (_, i) => {
             const row: Record<string, number> = { minute: i };
-            result.results.forEach((r) => (row[r.key] = r.hotSpot[i]));
+            result.results.forEach((r) => (row[r.key] = r.hotSpot[i] ?? 0));
             return row;
           })
         : [],
@@ -581,14 +581,14 @@ function RestorationLab() {
                           <YAxis />
                           <Tooltip />
                           <Legend />
-                          {[
+                          {([
                             ["basic", "#8C9C93"],
                             ["coolers", "#77A88A"],
                             ["refrigerators", "#2F7FB5"],
                             ["acs", "#E39B1B"],
                             ["pumps", "#A58BCB"],
                             ["recharge", "#C8423F"],
-                          ].map(([k, c]) => (
+                          ] as const).map(([k, c]) => (
                             <Area
                               key={k}
                               dataKey={k}
@@ -1056,7 +1056,9 @@ function quantile(xs: number[], p: number) {
     pos = (s.length - 1) * p,
     lo = Math.floor(pos),
     hi = Math.ceil(pos);
-  return s[lo] + (s[hi] - s[lo]) * (pos - lo);
+  const lower = s[lo] ?? 0;
+  const upper = s[hi] ?? lower;
+  return lower + (upper - lower) * (pos - lo);
 }
 function meanSafe(xs: number[]) {
   return xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0;
@@ -1224,7 +1226,7 @@ function FlexPage() {
                     <div className="funnel-track">
                       <i
                         style={{
-                          width: (f.count / Math.max(1, result.funnel[0].count)) * 100 + "%",
+                          width: (f.count / Math.max(1, result.funnel[0]?.count ?? 1)) * 100 + "%",
                         }}
                       />
                     </div>
@@ -1302,8 +1304,8 @@ function FlexPage() {
                         offset: -4,
                       }}
                     />
-                    <YAxis />
-                    <Tooltip />
+                    <YAxis tickFormatter={(value: number) => String(value.toFixed(1)) + " kVA"} />
+                    <Tooltip formatter={(value) => String(Number(value).toFixed(2)) + " kVA"} />
                     <Legend />
                     <Line dataKey="naive" name="Naive" stroke="#C8423F" dot={false} />
                     <Line dataKey="half" name="Staggered half" stroke="#E39B1B" dot={false} />
@@ -1641,7 +1643,7 @@ function HouseholdPage() {
   );
 }
 function ConsolePage() {
-  const [feeder] = useState<DT[]>(() => buildDemoFeeder()),
+  const feeder = useMemo<DT[]>(() => buildDemoFeeder(), []),
     [selected, setSelected] = useState("DT-0412"),
     [requested, setRequested] = useState(15),
     [time, setTime] = useState("18:45"),
@@ -1660,17 +1662,24 @@ function ConsolePage() {
   useEffect(() => {
     hydrateDemoStore();
   }, []);
-  const refreshSolar = async () => {
+  const refreshSolar = useCallback(async () => {
     setWeatherBusy(true);
     try {
-      setSolar(await loadSolar(CITIES.find((c) => c.name === city) ?? CITIES[0]!, threshold));
+      const targetEnergyKWh = event?.dispatchedEnergyKWh ?? 1.4;
+      setSolar(
+        await loadSolar(
+          CITIES.find((c) => c.name === city) ?? CITIES[0]!,
+          threshold,
+          targetEnergyKWh,
+        ),
+      );
     } finally {
       setWeatherBusy(false);
     }
-  };
+  }, [city, threshold, event?.dispatchedEnergyKWh]);
   useEffect(() => {
     void refreshSolar();
-  }, [city, threshold]);
+  }, [refreshSolar]);
   const send = () => {
     if (dt.group !== "Treated" || dt.status === "No comms") return;
     const x = runConsoleEvent({
@@ -1724,7 +1733,7 @@ function ConsolePage() {
                 duration,
                 credit: personaCredit,
                 dtId: dt.id,
-                reason: personaRow?.exclusion_reason,
+                ...(personaRow?.exclusion_reason ? { reason: personaRow.exclusion_reason } : {}),
               },
               ...store.events,
             ]
@@ -1741,6 +1750,7 @@ function ConsolePage() {
     peak: 100,
   }));
   const solarRows = solar?.hours ?? [];
+  const solarProvenance = solar?.mode === "LIVE" ? "LIVE" : "SIMULATED";
   return (
     <main className="page-container">
       <PageHeader
@@ -2071,12 +2081,12 @@ function ConsolePage() {
           <Button variant="secondary" onClick={refreshSolar} disabled={weatherBusy}>
             <RefreshCw size={14} /> {weatherBusy ? "Loading…" : "Retry forecast"}
           </Button>
-          {solar && <ProvenanceBadge kind={solar.mode} />}
+          {solar && <ProvenanceBadge kind={solarProvenance} />}
         </div>
         {solar && (
           <>
             <div className="kpi-grid kpi-grid-3">
-              <KpiCard label="Solar window" value={solar.window.label} provenance={solar.mode} />
+              <KpiCard label="Solar window · tomorrow IST" value={solar.date + " · " + solar.window.label} provenance={solarProvenance} />
               <KpiCard
                 label="Energy moved"
                 value={fmt(solar.movedKWh, 1)}
@@ -2086,13 +2096,13 @@ function ConsolePage() {
               <KpiCard label="Threshold" value={threshold} unit="W/m²" provenance="ILLUSTRATIVE" />
             </div>
             <ChartCard
-              title="Tomorrow's irradiance and recharge schedule"
+              title={"Tomorrow's irradiance and recharge schedule · " + solar.date + " IST"}
               subtitle="Hourly shortwave radiation (W/m²) and illustrative scheduled recharge (kW)"
-              provenance={solar.mode}
+              provenance={solarProvenance}
               summary={
                 solar.window.fallback
-                  ? "No contiguous solar window met the threshold; the off-peak 23:00–05:00 window is used."
-                  : "Recharge is spread across the longest contiguous solar window above the selected threshold."
+                  ? "No solar window met the threshold; the six-hour off-peak window is used."
+                  : "Recharge is spread across the longest qualifying window and sized to " + solar.movedKWh.toFixed(2) + " kWh of pending event energy."
               }
             >
               <ClientOnly>
@@ -2118,7 +2128,7 @@ function ConsolePage() {
               </ClientOnly>
             </ChartCard>
             <p className="small-note">
-              Weather data by{" "}
+              Weather data for {solar.date} (Asia/Kolkata) by{" "}
               <a href="https://open-meteo.com/" target="_blank" rel="noreferrer">
                 Open-Meteo.com
               </a>{" "}
@@ -2142,7 +2152,7 @@ function EconomicsPage() {
     { id: "upside" as const, label: "Upside · 60%", firmKVA: 23.2, fee: 22000, homes: 100 },
   ];
   const choose = (id: string) => {
-    const c = cases.find((x) => x.id === id) ?? cases[1];
+    const c = cases.find((x) => x.id === id) ?? cases[1]!;
     setInput({ ...input, caseId: c.id, firmKVA: c.firmKVA, fee: c.fee, enrolledHomes: c.homes });
   };
   const waterfall = [

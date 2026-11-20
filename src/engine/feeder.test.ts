@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { buildDemoFeeder, buildMVCSV, runConsoleEvent } from "./feeder";
+import { DEFAULT_FLEX, runFlexEvents } from "./flex";
+import { hashSeed } from "./rng";
 
 const dt = buildDemoFeeder().find((item) => item.id === "DT-0412")!;
 const request = (reserve: number) =>
@@ -17,6 +19,26 @@ const request = (reserve: number) =>
     endStrategy: "Staggered deferred",
     sequence: 0,
   });
+
+describe("feeder firm capacity", () => {
+  it("uses the flex engine's event-level P90 for each treated transformer", () => {
+    const feeder = buildDemoFeeder();
+    const treated = feeder.filter((item) => item.group === "Treated");
+    expect(treated.length).toBeGreaterThan(0);
+    for (const transformer of treated) {
+      const expected = runFlexEvents({
+        ...DEFAULT_FLEX,
+        homes: transformer.homes,
+        inverterShare: transformer.inverterShare,
+        enrolment: transformer.enrolment,
+        events: 200,
+        seed: hashSeed("feeder-firm-p90:" + transformer.id),
+      }).p90FirmKVA;
+      expect(transformer.firmP90KVA).toBe(expected);
+    }
+    expect(feeder.filter((item) => item.group === "Control").every((item) => item.firmP90KVA === 0)).toBe(true);
+  });
+});
 
 describe("DISCOM event dispatch", () => {
   it("uses the household reserve only for the deterministic persona", () => {

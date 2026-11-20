@@ -1,4 +1,4 @@
-import { bernoulli, choice, mean, mulberry32, normal, percentile, uniform } from "./rng";
+import { bernoulli, choice, hashSeed, mean, mulberry32, normal, percentile, uniform } from "./rng";
 import { PARAMS } from "./params";
 export type FlexInput = {
   homes: number;
@@ -158,11 +158,11 @@ export function simulateRebound(
   durationMin: number,
   participants = 70,
 ) {
-  const r = mulberry32(seed),
-    series: { minute: number; naive: number; half: number; deferred: number }[] = [];
-  const sums = [0, 0, 0],
-    socSums = [0, 0, 0];
-  let peaks = [0, 0, 0];
+  const r = mulberry32(hashSeed("rebound:" + seed));
+  const sums = [0, 0, 0];
+  const socSums = [0, 0, 0];
+  const profileSums = Array.from({ length: 3 }, () => Array<number>(90).fill(0));
+
   for (let event = 0; event < 50; event++) {
     const homes = Array.from({ length: participants }, () => ({
       kw: uniform(r, 0.22, 0.42),
@@ -171,110 +171,100 @@ export function simulateRebound(
       end: uniform(r, 0, 10),
       wait: uniform(r, 0, 15),
     }));
-    const eventSeries = [0, 0, 0],
-      socTotals = [0, 0, 0];
+
     for (let mode = 0; mode < 3; mode++) {
-      let peak = 0,
-        draws: number[] = [];
-      const states = homes.map((h) =>
-        Math.max(0.2, h.soc - (h.kw * (durationMin / 60)) / (0.85 * 1.8)),
+      let peak = 0;
+      const draws = Array<number>(90).fill(0);
+      const states = homes.map((home) =>
+        Math.max(0.2, home.soc - (home.kw * (durationMin / 60)) / (0.85 * 1.8)),
       );
-      for (let t = 0; t < 90; t++) {
+
+      for (let minute = 0; minute < 90; minute++) {
         let kva = 0;
         for (let i = 0; i < homes.length; i++) {
-          const h = homes[i];
-          if (!h) continue;
+          const home = homes[i];
+          if (!home) continue;
           const currentSOC = states[i] ?? 0;
-          let start = 0,
-            f = 1;
+          let start = 0;
+          let fraction = 1;
           if (mode === 1) {
-            start = h.end + h.wait;
-            f = 0.5;
+            start = home.end + home.wait;
+            fraction = 0.5;
+          } else if (mode === 2) {
+            start = currentSOC < 0.75 ? home.end + home.wait : 999;
+            fraction = 0.5;
           }
-          if (mode === 2) {
-            start = currentSOC < 0.75 ? h.end + h.wait : 999;
-            f = 0.5;
-          }
-          if (t >= start && currentSOC < 0.995) {
-            const taper = currentSOC <= 0.8 ? 1 : Math.max(0.1, (1 - currentSOC) / 0.2);
-            const kw = (((f * h.amps * 14) / 1000) * taper) / 0.82;
-            kva += kw / 0.75;
+          if (minute >= start && currentSOC < 0.995) {
+            const taper =
+              currentSOC <= 0.8 ? 1 : Math.max(0.1, (1 - currentSOC) / 0.2);
+            const inputKW = ((fraction * home.amps * 14) / 1000) * taper;
+            kva += inputKW / (0.82 * 0.75);
             states[i] = Math.min(
               0.995,
-              currentSOC + (((f * h.amps * 14) / 1000) * taper * 0.88) / 60 / 1.8,
+              currentSOC + (inputKW * 0.88) / 60 / 1.8,
             );
           }
         }
-        draws.push(kva);
+        draws[minute] = kva;
         peak = Math.max(peak, kva);
       }
-      eventSeries[mode] = peak;
-      socTotals[mode] = mean(states);
-    }
-    for (let i = 0; i < 3; i++) {
-      sums[i] += eventSeries[i];
-      socSums[i] += socTotals[i];
-      peaks[i] = Math.max(peaks[i], eventSeries[i]);
-    }
-    for (let t = 0; t < 90; t++) {
-      const row = series[t] || { minute: t, naive: 0, half: 0, deferred: 0 };
-      // Use the same event sample to create mean profiles; scaled to the event-level peaks.
-      row.naive += 0;
-      row.half += 0;
-      row.deferred += 0;
-      series[t] = row;
+
+      sums[mode] = (sums[mode] ?? 0) + peak;
+      socSums[mode] = (socSums[mode] ?? 0) + mean(states);
+      for (let minute = 0; minute < 90; minute++) {
+        profileSums[mode]![minute] = (profileSums[mode]![minute] ?? 0) + (draws[minute] ?? 0);
+      }
     }
   }
+
   const scale = enrolment / 0.4;
-  const naive = (sums[0] / 50) * scale,
-    staggeredHalf = (sums[1] / 50) * scale,
-    deferred = (sums[2] / 50) * scale;
-  const outSeries = Array.from({ length: 91 }, (_, minute) => ({
+  const naive = ((sums[0] ?? 0) / 50) * scale;
+  const staggeredHalf = ((sums[1] ?? 0) / 50) * scale;
+  const deferred = ((sums[2] ?? 0) / 50) * scale;
+  const series = Array.from({ length: 90 }, (_, minute) => ({
     minute,
-    naive: naive * Math.exp(-minute / 18),
-    half: staggeredHalf * Math.exp(-minute / 24),
-    deferred: deferred * Math.exp(-minute / 30),
+    naive: ((profileSums[0]?.[minute] ?? 0) / 50) * scale,
+    half: ((profileSums[1]?.[minute] ?? 0) / 50) * scale,
+    deferred: ((profileSums[2]?.[minute] ?? 0) / 50) * scale,
   }));
+
   return {
     naive,
     staggeredHalf,
     deferred,
-    socNaive: socSums[0] / 50,
-    socHalf: socSums[1] / 50,
-    socDeferred: socSums[2] / 50,
-    series: outSeries,
+    socNaive: (socSums[0] ?? 0) / 50,
+    socHalf: (socSums[1] ?? 0) / 50,
+    socDeferred: (socSums[2] ?? 0) / 50,
+    series,
   };
-}
-export async function simulateFlex(
-  input: FlexInput,
-  onProgress?: (done: number, total: number) => void,
-  cancelled?: () => boolean,
-): Promise<FlexResult> {
-  const homes = createFlexPopulation(input),
-    r = mulberry32(input.seed),
-    enrolled = homes.length;
-  const totals: number[] = [],
-    availableCounts: number[] = [],
-    energyTotals: number[] = [],
-    exclusionTotals: Record<string, number> = {
-      "Opted out": 0,
-      "Communication failure": 0,
-      "Battery health exclusion": 0,
-      "Critical backup protected": 0,
-      "Inverter load above 70% rating": 0,
-      "Previous event within 3 hours": 0,
-      "Projected SOC below reserve": 0,
-    };
+} 
+export function runFlexEvents(input: FlexInput): FlexResult {
+  const homes = createFlexPopulation(input, hashSeed("flex-population:" + input.seed));
+  const r = mulberry32(hashSeed("flex-events:" + input.seed));
+  const enrolled = homes.length;
+  const totals: number[] = [];
+  const availableCounts: number[] = [];
+  const energyTotals: number[] = [];
+  const exclusionTotals: Record<string, number> = {
+    "Opted out": 0,
+    "Communication failure": 0,
+    "Battery health exclusion": 0,
+    "Critical backup protected": 0,
+    "Inverter load above 70% rating": 0,
+    "Previous event within 3 hours": 0,
+    "Projected SOC below reserve": 0,
+  };
   let lastAudit: GuardResult[] = [];
-  for (let e = 0; e < input.events; e++) {
-    if (cancelled?.()) throw new Error("Flex run cancelled");
-    const multiplier = Math.max(0.7, Math.min(1.3, normal(r, 1, 0.1))),
-      audit: GuardResult[] = [];
-    let delivered = 0,
-      available = 0,
-      energy = 0;
-    for (const h of homes) {
-      const result = evaluateFlexHome(h, {
+
+  for (let event = 0; event < input.events; event++) {
+    const multiplier = Math.max(0.7, Math.min(1.3, normal(r, 1, 0.1)));
+    const audit: GuardResult[] = [];
+    let delivered = 0;
+    let available = 0;
+    let energy = 0;
+
+    for (const home of homes) {
+      const result = evaluateFlexHome(home, {
         multiplier,
         noise: uniform(r, 0.85, 1.15),
         preSOC: uniform(r, 0.84, 1),
@@ -291,20 +281,21 @@ export async function simulateFlex(
         available++;
         delivered += result.reliefKVA;
         energy += result.energyKWh;
-      } else exclusionTotals[result.reason] = (exclusionTotals[result.reason] || 0) + 1;
+      } else {
+        exclusionTotals[result.reason] = (exclusionTotals[result.reason] || 0) + 1;
+      }
     }
     totals.push(delivered);
     availableCounts.push(available);
     energyTotals.push(available ? energy / available : 0);
     lastAudit = audit;
-    onProgress?.(e + 1, input.events);
-    if (e < input.events - 1) await new Promise<void>((resolve) => setTimeout(resolve, 0));
   }
-  const averageKVA = mean(totals),
-    p90FirmKVA = percentile(totals, 0.1),
-    meanAvailableHomes = mean(availableCounts),
-    availabilityPct = enrolled ? (meanAvailableHomes / enrolled) * 100 : 0,
-    meanEnergyKWh = mean(energyTotals);
+
+  const averageKVA = mean(totals);
+  const p90FirmKVA = percentile(totals, 0.1);
+  const meanAvailableHomes = mean(availableCounts);
+  const availabilityPct = enrolled ? (meanAvailableHomes / enrolled) * 100 : 0;
+  const meanEnergyKWh = mean(energyTotals);
   const funnel = [
     { label: "Inverter homes", count: Math.round(input.homes * input.inverterShare) },
     { label: "Enrolled", count: enrolled },
@@ -327,11 +318,12 @@ export async function simulateFlex(
     { label: "After Reserve Guard", count: Math.round(meanAvailableHomes) },
   ];
   const rebound = simulateRebound(
-    input.seed + 31,
+    hashSeed("flex-rebound:" + input.seed),
     input.enrolment,
     input.durationMin,
     Math.max(20, Math.round(enrolled * 0.8)),
   );
+
   return {
     input,
     averageKVA,
@@ -347,6 +339,18 @@ export async function simulateFlex(
     exclusions: exclusionTotals,
     rebound,
   };
+}
+
+export async function simulateFlex(
+  input: FlexInput,
+  onProgress?: (done: number, total: number) => void,
+  cancelled?: () => boolean,
+): Promise<FlexResult> {
+  if (cancelled?.()) throw new Error("Flex run cancelled");
+  const result = runFlexEvents(input);
+  if (cancelled?.()) throw new Error("Flex run cancelled");
+  onProgress?.(input.events, input.events);
+  return result;
 }
 export const DEFAULT_FLEX: FlexInput = {
   homes: 332,
