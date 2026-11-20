@@ -7,7 +7,7 @@ export const sources = [
   {
     id: "powerpeak",
     label: "Power Peak Digest: EAC-PM flags 130 GWh storage need (Jul 2026)",
-    url: "https://powerpeakdigest.com/eac-pm-flags-130gwh-storage-need-india/",
+    url: "https://powerpeakdigest.com/eac-pm-flags-130gwh-storage-need-india-grid/",
   },
   {
     id: "upstox",
