@@ -581,7 +581,7 @@ function RestorationLab() {
                           <YAxis />
                           <Tooltip />
                           <Legend />
-                          {[
+                          {([
                             ["basic", "#8C9C93"],
                             ["coolers", "#77A88A"],
                             ["refrigerators", "#2F7FB5"],
