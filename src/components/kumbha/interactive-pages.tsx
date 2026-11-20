@@ -1488,7 +1488,7 @@ function HouseholdPage() {
               </div>
               <small>Battery warranty +6 months (proposed)</small>
             </div>
-            {(showNotice || store.notice) && (
+            {showNotice && store.notice && (
               <div
                 className={
                   "phone-event " + (guard.eligible && !store.criticalBackup ? "" : "blocked")

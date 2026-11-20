@@ -176,7 +176,9 @@ export function runConsoleEvent(req: EventRequest): ConsoleEvent {
     });
   }
   const eligibleHomes = eligible.filter((item) => item.reason === "Eligible");
-  const holdout = eligibleHomes.filter(() => bernoulli(r, req.holdoutPct / 100));
+  const holdout = eligibleHomes.filter(
+    (item) => item.home.id !== HOUSEHOLD_PERSONA.id && bernoulli(r, req.holdoutPct / 100),
+  );
   const holdIds = new Set(holdout.map((item) => item.home.id));
   const dispatchPool = eligibleHomes
     .filter((item) => !holdIds.has(item.home.id))
