@@ -1,30 +1,47 @@
-<!-- LOVABLE:BEGIN -->
-> [!IMPORTANT]
-> This project is connected to [Lovable](https://lovable.dev). Avoid rewriting
-> published git history — force pushing, or rebasing/amending/squashing commits
-> that are already pushed — as it rewrites history on Lovable's side and the
-> user will likely lose their project history.
->
-> Commits you push to the connected branch sync back to Lovable and show up in
-> the editor, so keep the branch in a working state.
+# Kumbhakarna Grid-Edge Console — agent rules
 
-## What Lovable manages
+This is a Lovable-synced TanStack Start repository. Keep the default branch and pushed history intact. Do not force-push, rebase, amend or squash commits already on main. Make one pull request per milestone.
 
-Rules outside this block are the project's own. Change the pieces below in
-Lovable, not by hand. With the [Lovable MCP](https://mcp.lovable.dev)
-connected, `send_message` asks Lovable to do it; otherwise ask the user to
-use the editor.
+## Product
+A frontend-only prototype for Project Kumbhakarna. It demonstrates:
+1. Smart Recharge: staggered, current-limited inverter charging after restoration to reduce distribution-transformer (DT) stress.
+2. Battery-Switch: short, DISCOM-requested flexibility from existing home inverter batteries.
+3. Reserve Guard: on-device eligibility rule that protects each household's backup reserve.
+4. DISCOM M&V: device-metered delivery, smart-meter cross-check, randomised holdout and settlement.
 
-- **Database.** Do not add or edit `supabase/migrations/` or `drizzle/`.
-  Ask Lovable to change the schema.
-- **Generated files.** Do not edit a file whose header says it is automatically
-  generated.
-- **AI gateway.** Keep model calls on Lovable's gateway, and keep
-  `LOVABLE_API_KEY` out of browser code.
-- **Connectors.** Lovable provides native connectors. `list_connectors` shows
-  which are enabled; `add_connector` only returns the dashboard link. When a
-  connector is enabled, calls go through the connector gateway and need
-  `LOVABLE_API_KEY`. When Lovable does not provide one, users can bring their
-  own key and store it in Secrets.
-- **Secrets.** Lovable manages them. Do not put secret values in the repo.
-<!-- LOVABLE:END -->
+## Stack and Lovable compatibility
+- Detect and preserve the existing stack: TanStack Start, React, TypeScript, Vite, Tailwind v4, Bun, shadcn/ui.
+- Routes use file-based routing under src/routes. Do not hand-edit src/routeTree.gen.ts; the build regenerates it.
+- Interactive routes should use ssr:false and a lightweight pending component. Browser APIs only in effects, event handlers or client-only components.
+- Do not change framework, router, bundler, build scripts, Vite plugins, Cloudflare/Nitro config, Tailwind setup, path aliases or root entry files.
+- Do not add dependencies unless already present. Reuse Recharts, lucide-react and Vitest.
+
+## Hard constraints
+- Frontend only: no server functions, API routes, edge functions, database, authentication, Supabase, Lovable Cloud, environment variables, secrets or API keys.
+- Only permitted network request: Open-Meteo forecast API, client-side, 6-second timeout, visible LIVE or MODELLED fallback badge. All other features must work offline.
+- No Web Workers. Chunk long jobs and yield to the UI with progress/cancel controls.
+- All random values must come from seeded mulberry32; same seed and inputs must reproduce the same result.
+- Every number must carry a provenance label: PUBLISHED, TEAM MODEL, SIMULATED, ILLUSTRATIVE or LIVE. Never present model outputs as field results or sourced facts.
+- Persistent banner: “Prototype · simulated data · not connected to real devices or utility systems”.
+- Do not use Schneider Electric, IIM Lucknow, DISCOM or OEM logos. Text credit only.
+- No personal data, real device connection or utility-system connection.
+
+## Model and safety rules
+- Use common random numbers across restoration strategies.
+- Use IEC 60076-7 difference equations for the transformer thermal model.
+- Reserve Guard: projected post-event SOC must remain at or above the household reserve. Do not add event energy to reserve a second time.
+- Distinguish contracted, available and delivered capacity.
+- Charger staggering addresses restoration rebound; battery-switch relief addresses the evening ramp.
+- Measure rebound; deferred recharge must not create a synchronised return to grid.
+- Gate 0 requires OEM model-by-model confirmation of telemetry, charge-current control, forced battery mode (if used), latency, fallback, BMS, warranty, BIS and cybersecurity.
+- Label all team-report results as TEAM MODEL and live engine output as SIMULATED. Field performance remains TO VALIDATE until a pilot.
+
+## Design
+- Light, white/green, responsive from 360px to 1440px.
+- Schneider-inspired palette: primary #009E4D, accent #3DCD58, deep #005C30, info #2F7FB5, warning #E39B1B, danger #C8423F, neutral #8C9C93. Define colors as theme tokens.
+- Rounded-xl cards, generous whitespace, AA contrast, visible focus, labeled inputs, chart summaries and Indian number formatting.
+- Charts render only on the client.
+
+## Quality gates
+Run Bun install, build, lint and Vitest. Smoke-test all eight routes for HTTP 200. Do not commit node_modules, dist, .output, .wrangler, .env files or OS files.
+Every PR must state changes, commands/results, validation deltas, known gaps and a manual QA checklist.
