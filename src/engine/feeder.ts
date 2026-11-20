@@ -1,5 +1,5 @@
 import { mulberry32, normal, uniform, bernoulli, choice, hashSeed, mean } from "./rng";
-import { createFlexPopulation, evaluateFlexHome, simulateRebound, type FlexHome } from "./flex";
+import { createFlexPopulation, evaluateFlexHome, runFlexEvents, simulateRebound, type FlexHome } from "./flex";
 import { DEFAULT_FLEX, type FlexResult } from "./flex";
 import { HOUSEHOLD_PERSONA } from "../data/persona";
 export type DT = {
@@ -69,6 +69,17 @@ export function buildDemoFeeder(seed = 2026): DT[] {
       enrolment = 0.4;
     }
     const homes = Math.round((((332 * ratingKVA) / 250) * preLoad) / 0.8);
+    const firmP90KVA =
+      group === "Treated"
+        ? runFlexEvents({
+            ...DEFAULT_FLEX,
+            homes,
+            inverterShare,
+            enrolment,
+            events: 200,
+            seed: hashSeed("feeder-firm-p90:" + id),
+          }).p90FirmKVA
+        : 0;
     return {
       id,
       ratingKVA,
@@ -78,10 +89,7 @@ export function buildDemoFeeder(seed = 2026): DT[] {
       enrolment,
       group,
       status: id === "DT-0409" ? "No comms" : preLoad >= 0.9 ? "Augmentation advised" : "Ready",
-      firmP90KVA:
-        group === "Treated"
-          ? 14.9 * (enrolment / 0.4) * ((homes * inverterShare) / 166) * (250 / ratingKVA)
-          : 0,
+      firmP90KVA,
     };
   });
 }
