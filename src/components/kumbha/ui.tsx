@@ -35,7 +35,7 @@ export function AppShell({children}:{children:ReactNode}) {
   const [tour,setTour]=useState(false);
   const [reset,setReset]=useState(false);
   const openTour=()=>{setTour(true); if (typeof window!=="undefined") window.dispatchEvent(new CustomEvent("kumbha:tour",{detail:{open:true}}));};
-  const resetDemo=()=>{resetDemoStore();try{localStorage.removeItem("kumbha-demo-v1");}catch { /* local storage may be unavailable */ };setReset(true);window.setTimeout(()=>setReset(false),2200);window.location.reload();};
+  const resetDemo=()=>{resetDemoStore();try{localStorage.removeItem("kumbha-demo-v1");}catch{};setReset(true);window.setTimeout(()=>setReset(false),2200);window.location.reload();};
   return <div className="app-frame">
     <header className="topbar"><div className="brand"><div className="brand-mark"><BatteryCharging size={20}/></div><div><strong>Kumbhakarna</strong><span>Grid-Edge Console</span></div></div>
       <nav className="desktop-nav">{nav.map(([href,label])=><a key={href} href={href}>{label}</a>)}</nav>

@@ -40,7 +40,7 @@ function runStrategy(homes:Home[],input:RestorationInput,key:StrategyKey,preLoad
  for(let i=0;i<outage;i++)thermal=stepThermal(thermal,0,input.ambientC,input.thermalDesign).state;
  const loading:number[]=[],hotSpot:number[]=[];
  const components:RunSeries["components"]={basic:[],coolers:[],refrigerators:[],acs:[],pumps:[],recharge:[]};
- let prevLoad=preLoad,aging=0,maxHot=-Infinity,min100=0,min120=0,overload=0,peak=0,ready60=0,ready120=0,const invCount=homes.filter(h=>h.inv).length;
+ let prevLoad=preLoad,aging=0,maxHot=-Infinity,min100=0,min120=0,overload=0,peak=0,ready60=0,ready120=0;const invCount=homes.filter(h=>h.inv).length;
  for(let t=0;t<240;t++){
   let pBasic=0,qBasic=0,pCool=0,qCool=0,pFridge=0,qFridge=0,pAc=0,qAc=0,pPump=0,qPump=0,pCharge=0,qCharge=0;
   for(let i=0;i<homes.length;i++){

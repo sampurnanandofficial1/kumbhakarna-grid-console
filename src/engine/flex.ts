@@ -37,7 +37,7 @@ export function simulateRebound(seed:number,enrolment:number,durationMin:number,
   const homes=Array.from({length:participants},()=>({kw:uniform(r,.22,.42),soc:uniform(r,.84,.98),amps:choice(r,[10,12,15]),end:uniform(r,0,10),wait:uniform(r,0,15)}));
   const eventSeries=[0,0,0],socTotals=[0,0,0];
   for(let mode=0;mode<3;mode++){
-   let peak=0;const draws:number[]=[];
+   let peak=0,draws:number[]=[];
    const states=homes.map(h=>Math.max(.2,h.soc-h.kw*(durationMin/60)/(.85*1.8)));
    for(let t=0;t<90;t++){
     let kva=0;
