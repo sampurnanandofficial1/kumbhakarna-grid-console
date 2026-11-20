@@ -330,7 +330,7 @@ function RestorationLab() {
       result
         ? Array.from({ length: 240 }, (_, i) => {
             const row: Record<string, number> = { minute: i };
-            result.results.forEach((r) => (row[r.key] = r.loading[i]));
+            result.results.forEach((r) => (row[r.key] = r.loading[i] ?? 0));
             return row;
           })
         : [],
@@ -341,7 +341,7 @@ function RestorationLab() {
       result
         ? Array.from({ length: 240 }, (_, i) => {
             const row: Record<string, number> = { minute: i };
-            result.results.forEach((r) => (row[r.key] = r.hotSpot[i]));
+            result.results.forEach((r) => (row[r.key] = r.hotSpot[i] ?? 0));
             return row;
           })
         : [],
@@ -588,7 +588,7 @@ function RestorationLab() {
                             ["acs", "#E39B1B"],
                             ["pumps", "#A58BCB"],
                             ["recharge", "#C8423F"],
-                          ].map(([k, c]) => (
+                          ] as const).map(([k, c]) => (
                             <Area
                               key={k}
                               dataKey={k}
@@ -1056,7 +1056,9 @@ function quantile(xs: number[], p: number) {
     pos = (s.length - 1) * p,
     lo = Math.floor(pos),
     hi = Math.ceil(pos);
-  return s[lo] + (s[hi] - s[lo]) * (pos - lo);
+  const lower = s[lo] ?? 0;
+  const upper = s[hi] ?? lower;
+  return lower + (upper - lower) * (pos - lo);
 }
 function meanSafe(xs: number[]) {
   return xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0;
@@ -1224,7 +1226,7 @@ function FlexPage() {
                     <div className="funnel-track">
                       <i
                         style={{
-                          width: (f.count / Math.max(1, result.funnel[0].count)) * 100 + "%",
+                          width: (f.count / Math.max(1, result.funnel[0]?.count ?? 1)) * 100 + "%",
                         }}
                       />
                     </div>
@@ -1731,7 +1733,7 @@ function ConsolePage() {
                 duration,
                 credit: personaCredit,
                 dtId: dt.id,
-                reason: personaRow?.exclusion_reason,
+                ...(personaRow?.exclusion_reason ? { reason: personaRow.exclusion_reason } : {}),
               },
               ...store.events,
             ]
@@ -1748,6 +1750,7 @@ function ConsolePage() {
     peak: 100,
   }));
   const solarRows = solar?.hours ?? [];
+  const solarProvenance = solar?.mode === "LIVE" ? "LIVE" : "SIMULATED";
   return (
     <main className="page-container">
       <PageHeader
@@ -2078,12 +2081,12 @@ function ConsolePage() {
           <Button variant="secondary" onClick={refreshSolar} disabled={weatherBusy}>
             <RefreshCw size={14} /> {weatherBusy ? "Loading…" : "Retry forecast"}
           </Button>
-          {solar && <ProvenanceBadge kind={solar.mode} />}
+          {solar && <ProvenanceBadge kind={solarProvenance} />}
         </div>
         {solar && (
           <>
             <div className="kpi-grid kpi-grid-3">
-              <KpiCard label="Solar window · tomorrow IST" value={solar.date + " · " + solar.window.label} provenance={solar.mode} />
+              <KpiCard label="Solar window · tomorrow IST" value={solar.date + " · " + solar.window.label} provenance={solarProvenance} />
               <KpiCard
                 label="Energy moved"
                 value={fmt(solar.movedKWh, 1)}
@@ -2095,7 +2098,7 @@ function ConsolePage() {
             <ChartCard
               title={"Tomorrow's irradiance and recharge schedule · " + solar.date + " IST"}
               subtitle="Hourly shortwave radiation (W/m²) and illustrative scheduled recharge (kW)"
-              provenance={solar.mode}
+              provenance={solarProvenance}
               summary={
                 solar.window.fallback
                   ? "No solar window met the threshold; the six-hour off-peak window is used."
@@ -2149,7 +2152,7 @@ function EconomicsPage() {
     { id: "upside" as const, label: "Upside · 60%", firmKVA: 23.2, fee: 22000, homes: 100 },
   ];
   const choose = (id: string) => {
-    const c = cases.find((x) => x.id === id) ?? cases[1];
+    const c = cases.find((x) => x.id === id) ?? cases[1]!;
     setInput({ ...input, caseId: c.id, firmKVA: c.firmKVA, fee: c.fee, enrolledHomes: c.homes });
   };
   const waterfall = [
