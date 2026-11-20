@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { reserveGuard, evaluateFlexHome, simulateFlex } from "./flex";
+import { reserveGuard, evaluateFlexHome, runFlexEvents, simulateFlex } from "./flex";
 const home = {
   id: "H-1",
   basicKW: 0.24,
@@ -33,6 +33,44 @@ describe("Reserve Guard and firm flexibility", () => {
     });
     expect(x.reason).toBe("Opted out");
   });
+
+  it("exposes a pure synchronous event runner with independent seeded streams", () => {
+    const input = {
+      homes: 332,
+      inverterShare: 0.5,
+      enrolment: 0.4,
+      durationMin: 30,
+      reserveFloor: 0.6,
+      p90OutageHours: 2,
+      criticalShare: 0,
+      events: 5,
+      seed: 2026,
+    };
+    const shortRun = runFlexEvents(input);
+    const longRun = runFlexEvents({ ...input, events: 8 });
+    expect(shortRun).not.toBeInstanceOf(Promise);
+    expect(shortRun.events).toEqual(longRun.events.slice(0, 5));
+    expect(runFlexEvents(input)).toEqual(shortRun);
+  });
+
+  it("returns simulated minute-by-minute rebound traces, not a fitted decay curve", () => {
+    const result = runFlexEvents({
+      homes: 332,
+      inverterShare: 0.5,
+      enrolment: 0.4,
+      durationMin: 30,
+      reserveFloor: 0.6,
+      p90OutageHours: 2,
+      criticalShare: 0,
+      events: 5,
+      seed: 2026,
+    });
+    expect(result.rebound.series).toHaveLength(90);
+    expect(result.rebound.series.some((point) => point.naive > 0)).toBe(true);
+    expect(result.rebound.series[0]?.minute).toBe(0);
+    expect(result.rebound.series[89]?.minute).toBe(89);
+  });
+
   it("reproduces a seeded 200-event firm capacity run", async () => {
     const input = {
       homes: 332,
