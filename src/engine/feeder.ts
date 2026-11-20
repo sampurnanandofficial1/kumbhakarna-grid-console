@@ -108,7 +108,9 @@ export function runConsoleEvent(req: EventRequest): ConsoleEvent {
   const eventId =
     "EV-" +
     hashSeed(
-      [dt.id, req.time, req.requestedKVA, req.durationMin, req.holdoutPct, req.sequence ?? 0].join("|"),
+      [dt.id, req.time, req.requestedKVA, req.durationMin, req.holdoutPct, req.sequence ?? 0].join(
+        "|",
+      ),
     )
       .toString(16)
       .toUpperCase();
@@ -148,7 +150,9 @@ export function runConsoleEvent(req: EventRequest): ConsoleEvent {
   }[] = [];
   for (const home of homes) {
     const isPersona = home.id === HOUSEHOLD_PERSONA.id && dt.id === "DT-0412";
-    const multiplier = isPersona ? HOUSEHOLD_PERSONA.multiplier : Math.max(0.7, Math.min(1.3, normal(r, 1, 0.1)));
+    const multiplier = isPersona
+      ? HOUSEHOLD_PERSONA.multiplier
+      : Math.max(0.7, Math.min(1.3, normal(r, 1, 0.1)));
     const noise = isPersona ? HOUSEHOLD_PERSONA.noise : uniform(r, 0.85, 1.15);
     const preSOC = isPersona ? HOUSEHOLD_PERSONA.preSOC : uniform(r, 0.84, 1);
     const result = evaluateFlexHome(home, {
@@ -158,9 +162,7 @@ export function runConsoleEvent(req: EventRequest): ConsoleEvent {
       optedOut: isPersona ? (req.personaOptOutNext ?? req.optOutNext) : bernoulli(r, 0.1),
       commsFailed: isPersona ? false : bernoulli(r, 0.03),
       healthExcluded: isPersona ? false : bernoulli(r, 0.05),
-      reserveFloor: isPersona
-        ? (req.personaReservePercent ?? 65) / 100
-        : DEFAULT_FLEX.reserveFloor,
+      reserveFloor: isPersona ? (req.personaReservePercent ?? 65) / 100 : DEFAULT_FLEX.reserveFloor,
       p90OutageHours: isPersona ? HOUSEHOLD_PERSONA.p90OutageHours : req.p90OutageHours,
       durationMin: req.durationMin,
       criticalBackup: isPersona ? (req.personaCriticalBackup ?? false) : false,
@@ -185,7 +187,7 @@ export function runConsoleEvent(req: EventRequest): ConsoleEvent {
     .sort((a, b) => {
       if (a.home.id === HOUSEHOLD_PERSONA.id) return -1;
       if (b.home.id === HOUSEHOLD_PERSONA.id) return 1;
-      return (b.projected - b.reserve) - (a.projected - a.reserve);
+      return b.projected - b.reserve - (a.projected - a.reserve);
     });
   const eligibleNowKVA = dispatchPool.reduce((sum, item) => sum + item.relief, 0);
   const dispatchTargetKVA = Math.max(0, req.requestedKVA * 1.1);
@@ -204,9 +206,7 @@ export function runConsoleEvent(req: EventRequest): ConsoleEvent {
   const dispatchGrid = dispatched.map(() => Math.max(0, normal(r, 0, 0.03)));
   const holdDiff = mean(holdGrid) - mean(dispatchGrid);
   const holdoutEstimateKVA =
-    holdout.length && dispatched.length
-      ? (holdDiff * dispatched.length) / 0.87
-      : deliveredTrueKVA;
+    holdout.length && dispatched.length ? (holdDiff * dispatched.length) / 0.87 : deliveredTrueKVA;
   const holdoutCI =
     holdout.length && dispatched.length
       ? (1.96 *
@@ -240,7 +240,13 @@ export function runConsoleEvent(req: EventRequest): ConsoleEvent {
       event_id: eventId,
       dt_id: dt.id,
       home_id: item.home.id,
-      group: isDispatched ? "dispatched" : isHoldout ? "holdout" : item.reason === "Eligible" ? "standby" : "ineligible",
+      group: isDispatched
+        ? "dispatched"
+        : isHoldout
+          ? "holdout"
+          : item.reason === "Eligible"
+            ? "standby"
+            : "ineligible",
       exclusion_reason: isDispatched || isHoldout || item.reason === "Eligible" ? "" : item.reason,
       pre_soc: item.preSOC,
       projected_post_soc: item.projected,

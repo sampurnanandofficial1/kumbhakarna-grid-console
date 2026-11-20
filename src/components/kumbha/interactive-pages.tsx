@@ -71,7 +71,9 @@ const money = (v: number) =>
   new Intl.NumberFormat("en-IN", { maximumFractionDigits: 0 }).format(Number.isFinite(v) ? v : 0);
 const moneyPrecise = (v: number) =>
   "₹" +
-  new Intl.NumberFormat("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number.isFinite(v) ? v : 0);
+  new Intl.NumberFormat("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(
+    Number.isFinite(v) ? v : 0,
+  );
 const pct = (v: number) => v.toFixed(1) + "%";
 const fmt = (v: number, d = 1) => v.toFixed(d);
 function download(name: string, body: string, type = "text/plain;charset=utf-8") {
@@ -1386,21 +1388,53 @@ function HouseholdPage() {
   };
   const continueEvent = () => {
     const notice = store.notice;
-    if (!notice || notice.status !== "pending" || store.events.some((item) => item.id === notice.eventId)) return;
+    if (
+      !notice ||
+      notice.status !== "pending" ||
+      store.events.some((item) => item.id === notice.eventId)
+    )
+      return;
     const credit = 4.5;
     setDemoState({
       notice: { ...notice, status: "accepted", reason: "Reserve Guard passed" },
       credits: store.credits + credit,
-      events: [{ id: notice.eventId ?? "EV-HOME-0412-001", status: "Participated", time: "Today · 18:45", duration, credit }, ...store.events],
+      events: [
+        {
+          id: notice.eventId ?? "EV-HOME-0412-001",
+          status: "Participated",
+          time: "Today · 18:45",
+          duration,
+          credit,
+        },
+        ...store.events,
+      ],
     });
     setShowNotice(false);
   };
   const optOut = () => {
     const notice = store.notice;
-    if (!notice || notice.status !== "pending" || store.events.some((item) => item.id === notice.eventId)) return;
+    if (
+      !notice ||
+      notice.status !== "pending" ||
+      store.events.some((item) => item.id === notice.eventId)
+    )
+      return;
     setDemoState({
-      notice: { ...notice, status: "blocked", reason: "You opted out. Your choice is always honoured." },
-      events: [{ id: notice.eventId ?? "EV-HOME-0412-001", status: "Opted out", time: "Today · 18:45", duration, credit: 0 }, ...store.events],
+      notice: {
+        ...notice,
+        status: "blocked",
+        reason: "You opted out. Your choice is always honoured.",
+      },
+      events: [
+        {
+          id: notice.eventId ?? "EV-HOME-0412-001",
+          status: "Opted out",
+          time: "Today · 18:45",
+          duration,
+          credit: 0,
+        },
+        ...store.events,
+      ],
     });
     setShowNotice(false);
   };
@@ -1503,7 +1537,9 @@ function HouseholdPage() {
                 </div>
                 <p>Fans and lights can run on your inverter battery during this short event.</p>
                 {store.criticalBackup ? (
-                  <div className="guard-explain">Critical backup is on: your battery will not be used for grid support.</div>
+                  <div className="guard-explain">
+                    Critical backup is on: your battery will not be used for grid support.
+                  </div>
                 ) : (
                   <div className="guard-explain">
                     Projected battery after event <b>{pct(guard.projectedSOC * 100)}</b>{" "}
@@ -1512,9 +1548,13 @@ function HouseholdPage() {
                   </div>
                 )}
                 <div className="phone-event-actions">
-                  <button disabled={store.notice?.status !== "pending"} onClick={optOut}>Opt out</button>
+                  <button disabled={store.notice?.status !== "pending"} onClick={optOut}>
+                    Opt out
+                  </button>
                   <button
-                    disabled={store.notice?.status !== "pending" || !guard.eligible || store.criticalBackup}
+                    disabled={
+                      store.notice?.status !== "pending" || !guard.eligible || store.criticalBackup
+                    }
                     onClick={continueEvent}
                   >
                     Continue
@@ -1522,7 +1562,11 @@ function HouseholdPage() {
                 </div>
               </div>
             )}
-            <button className="phone-simulate" onClick={incoming} disabled={store.notice?.status === "pending"}>
+            <button
+              className="phone-simulate"
+              onClick={incoming}
+              disabled={store.notice?.status === "pending"}
+            >
               Simulate incoming event
             </button>
             <div className="phone-home-indicator" />
@@ -1670,10 +1714,21 @@ function ConsolePage() {
         reserve: personaRow?.reserve ?? 0,
       },
       credits: store.credits + personaCredit,
-      events: dt.id === "DT-0412" ? [
-        { id: x.eventId, status: personaOutcome, time: "Today · " + time, duration, credit: personaCredit, dtId: dt.id, reason: personaRow?.exclusion_reason },
-        ...store.events,
-      ] : store.events,
+      events:
+        dt.id === "DT-0412"
+          ? [
+              {
+                id: x.eventId,
+                status: personaOutcome,
+                time: "Today · " + time,
+                duration,
+                credit: personaCredit,
+                dtId: dt.id,
+                reason: personaRow?.exclusion_reason,
+              },
+              ...store.events,
+            ]
+          : store.events,
     });
   };
   const profile = Array.from({ length: 24 }, (_, h) => ({
@@ -1952,7 +2007,9 @@ function ConsolePage() {
               {event.requestedKVA > event.availableKVA && (
                 <div className="callout callout-amber">
                   <b>Request exceeds available P90 capacity</b>
-                  <span>Requested relief is above the simulated firm P90 capacity for this transformer.</span>
+                  <span>
+                    Requested relief is above the simulated firm P90 capacity for this transformer.
+                  </span>
                 </div>
               )}
               <div className="callout callout-green">
