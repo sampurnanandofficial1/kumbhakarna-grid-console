@@ -42,13 +42,14 @@ export type ConsoleEvent = {
   deliveredTrueKVA: number;
   deviceMeteredKVA: number;
   smartMeterCheckKVA: number;
-  holdoutEstimateKVA: number;
-  holdoutCI: number;
+  holdoutEstimateKVA: number | null;
+  holdoutCI: number | null;
   reboundKVA: number;
   status: string;
   metPct: number;
   participants: number;
   holdoutHomes: number;
+  holdoutStatus: "available" | "none" | "too_small";
   creditPerHome: number;
   creditsPaid: number;
   rows: MVRow[];
@@ -192,9 +193,22 @@ export function runConsoleEvent(req: EventRequest): ConsoleEvent {
     });
   }
   const eligibleHomes = eligible.filter((item) => item.reason === "Eligible");
-  const holdout = eligibleHomes.filter(
-    (item) => item.home.id !== HOUSEHOLD_PERSONA.id && bernoulli(r, req.holdoutPct / 100),
-  );
+  const eligibleNonPersona = eligibleHomes.filter((item) => item.home.id !== HOUSEHOLD_PERSONA.id);
+  const holdoutStatus =
+    req.holdoutPct <= 0 ? "none" : eligibleNonPersona.length < 5 ? "too_small" : "available";
+  const shuffledEligible = [...eligibleNonPersona];
+  for (let i = shuffledEligible.length - 1; i > 0; i--) {
+    const j = Math.floor(r() * (i + 1));
+    [shuffledEligible[i], shuffledEligible[j]] = [shuffledEligible[j]!, shuffledEligible[i]!];
+  }
+  const holdoutCount =
+    holdoutStatus === "available"
+      ? Math.min(
+          eligibleNonPersona.length,
+          Math.max(5, Math.round((req.holdoutPct / 100) * eligibleNonPersona.length)),
+        )
+      : 0;
+  const holdout = shuffledEligible.slice(0, holdoutCount);
   const holdIds = new Set(holdout.map((item) => item.home.id));
   const dispatchPool = eligibleHomes
     .filter((item) => !holdIds.has(item.home.id))
@@ -219,8 +233,10 @@ export function runConsoleEvent(req: EventRequest): ConsoleEvent {
   const holdGrid = holdout.map((item) => item.relief * 0.87 + normal(r, 0, 0.03));
   const dispatchGrid = dispatched.map(() => normal(r, 0, 0.03));
   const holdDiff = mean(holdGrid) - mean(dispatchGrid);
-  const holdoutEstimateKVA =
-    holdout.length && dispatched.length ? (holdDiff * dispatched.length) / 0.87 : deliveredTrueKVA;
+  const hasHoldoutEstimate = holdoutStatus === "available" && holdout.length > 0 && dispatched.length > 0;
+  const holdoutEstimateKVA = hasHoldoutEstimate
+    ? (holdDiff * dispatched.length) / 0.87
+    : null;
   const holdoutVariance = variance(holdGrid) / holdGrid.length;
   const dispatchVariance = variance(dispatchGrid) / dispatchGrid.length;
   const combinedVariance = holdoutVariance + dispatchVariance;
@@ -230,14 +246,13 @@ export function runConsoleEvent(req: EventRequest): ConsoleEvent {
   const degreesFreedom = welchDenominator > 0 ? combinedVariance ** 2 / welchDenominator : 30;
   // Inflate the small-sample interval for reserve-headroom prioritisation versus random holdouts.
   const holdoutSelectionAdjustment = 1.25;
-  const holdoutCI =
-    holdout.length && dispatched.length
-      ? (studentT95(degreesFreedom) *
-          Math.sqrt(combinedVariance) *
-          holdoutSelectionAdjustment *
-          dispatched.length) /
-        0.87
-      : 0;
+  const holdoutCI = hasHoldoutEstimate
+    ? (studentT95(degreesFreedom) *
+        Math.sqrt(combinedVariance) *
+        holdoutSelectionAdjustment *
+        dispatched.length) /
+      0.87
+    : null;
   const rebound =
     dispatched.length > 0
       ? simulateRebound(hashSeed(eventId) + 9, req.durationMin, dispatched.length)
@@ -296,6 +311,7 @@ export function runConsoleEvent(req: EventRequest): ConsoleEvent {
     metPct,
     participants: dispatched.length,
     holdoutHomes: holdout.length,
+    holdoutStatus,
     creditPerHome,
     creditsPaid,
     rows,
@@ -363,6 +379,7 @@ export function buildEventSummary(event: ConsoleEvent) {
       smartMeterCheckKVA: event.smartMeterCheckKVA,
       holdoutEstimateKVA: event.holdoutEstimateKVA,
       holdoutCI95KVA: event.holdoutCI,
+      holdoutStatus: event.holdoutStatus,
       reboundKVA: event.reboundKVA,
       status: event.status,
       creditsPaidINR: event.creditsPaid,
