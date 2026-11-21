@@ -23,7 +23,7 @@ A frontend-only prototype for Project Kumbhakarna. It demonstrates:
 - All random values must come from seeded mulberry32; same seed and inputs must reproduce the same result.
 - Every number must carry a provenance label: PUBLISHED, TEAM MODEL, SIMULATED, ILLUSTRATIVE or LIVE. Never present model outputs as field results or sourced facts.
 - Persistent banner: “Prototype · simulated data · not connected to real devices or utility systems”.
-- Do not use Schneider Electric, IIM Lucknow, DISCOM or OEM logos. Text credit only.
+- Schneider Electric logo is permitted only as hackathon credit in the header/footer. Do not use IIM Lucknow, DISCOM or OEM logos; use text credit only for those entities.
 - No personal data, real device connection or utility-system connection.
 
 ## Model and safety rules

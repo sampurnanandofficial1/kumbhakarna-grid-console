@@ -1134,7 +1134,11 @@ function FlexPage() {
             <Select
               value={input.enrolment}
               onChange={(v) => setInput({ ...input, enrolment: Number(v) })}
-              options={[0.25, 0.4, 0.6]}
+              options={[
+                { value: 0.25, label: "25%" },
+                { value: 0.4, label: "40%" },
+                { value: 0.6, label: "60%" },
+              ]}
             />
           </Field>
           <Field label="Duration">
@@ -1328,7 +1332,7 @@ function FlexPage() {
                         ticks={Array.from({ length: 10 }, (_, i) => i * 10)}
                         interval={0}
                         minTickGap={0}
-                        tick={{ fontSize: 8 }}
+                        tick={{ fontSize: 11 }}
                         tickMargin={4}
                         label={{
                           value: "Minutes after event end",
@@ -1339,7 +1343,7 @@ function FlexPage() {
                       />
                       <YAxis
                         width={82}
-                        tick={{ fontSize: 9 }}
+                        tick={{ fontSize: 11 }}
                         tickFormatter={(value: number) => String(value.toFixed(1)) + " kVA"}
                       />
                       <Tooltip formatter={(value) => String(Number(value).toFixed(2)) + " kVA"} />
@@ -2047,10 +2051,9 @@ function ConsolePage() {
                 />
                 <KpiCard
                   label="Holdout estimate"
-                  value={fmt(event.holdoutEstimateKVA)}
-                  unit="kVA"
+                  value={event.holdoutHomes === 0 ? "n/a — no holdout group" : fmt(event.holdoutEstimateKVA)}
                   provenance="SIMULATED"
-                  detail={"95% CI ±" + fmt(event.holdoutCI) + " kVA"}
+                  {...(event.holdoutHomes > 0 ? { unit: "kVA", detail: "95% CI ±" + fmt(event.holdoutCI) + " kVA" } : {})}
                 />
                 <KpiCard
                   label="Rebound"
@@ -2248,6 +2251,8 @@ function EconomicsPage() {
             <Field label="Firm P90 kVA">
               <input
                 type="number"
+                min="0.1"
+                step="0.1"
                 value={input.firmKVA}
                 onChange={(e) => setInput({ ...input, firmKVA: Number(e.target.value) })}
               />
@@ -2270,7 +2275,7 @@ function EconomicsPage() {
               <input
                 type="number"
                 min="0"
-                max="1"
+                max="0.9"
                 step=".05"
                 value={input.creditShare}
                 onChange={(e) => setInput({ ...input, creditShare: Number(e.target.value) })}
@@ -2315,6 +2320,7 @@ function EconomicsPage() {
             <Field label="Load growth">
               <input
                 type="number"
+                min="0.001"
                 step=".001"
                 value={input.loadGrowth}
                 onChange={(e) => setInput({ ...input, loadGrowth: Number(e.target.value) })}
@@ -2349,7 +2355,7 @@ function EconomicsPage() {
             <KpiCard label="Fee per DT-year" value={money(input.fee)} provenance="SIMULATED" />
             <KpiCard
               label="₹ / firm kW-year"
-              value={money(result.feePerFirmKWyr)}
+              value={result.feePerFirmKWyr === null ? "—" : money(result.feePerFirmKWyr)}
               provenance="SIMULATED"
             />
             <KpiCard
@@ -2359,9 +2365,9 @@ function EconomicsPage() {
             />
             <KpiCard
               label="Onboarding payback"
-              value={fmt(result.onboardingPaybackMonths, 1)}
-              unit="months"
+              value={result.onboardingPaybackMonths === null ? "Not reached" : fmt(result.onboardingPaybackMonths, 1)}
               provenance="SIMULATED"
+              {...(result.onboardingPaybackMonths !== null ? { unit: "months" } : {})}
             />
             <KpiCard
               label="Household net / year"
@@ -2370,9 +2376,9 @@ function EconomicsPage() {
             />
             <KpiCard
               label="Deferral PV"
-              value={money(result.deferralPV)}
+              value={result.deferralPV === null ? "—" : money(result.deferralPV)}
               provenance="SIMULATED"
-              detail={fmt(result.deferralYears, 2) + " years of deferral"}
+              detail={result.deferralYears === null ? "—" : fmt(result.deferralYears, 2) + " years of deferral"}
             />
           </div>
           <ChartCard
@@ -2428,7 +2434,7 @@ function EconomicsPage() {
               <ResponsiveContainer width="100%" height={250}>
                 <BarChart
                   data={[
-                    { name: "Kumbhakarna", value: result.feePerFirmKWyr },
+                    { name: "Kumbhakarna", value: result.feePerFirmKWyr ?? 0 },
                     { name: "2025 2-h BESS", value: 1776 },
                     { name: "MSEDCL 2-h BESS", value: 2880 },
                     { name: "BRPL Shivalik 2-h", value: 3591 },

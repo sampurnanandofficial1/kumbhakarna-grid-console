@@ -83,3 +83,24 @@ img,svg,canvas{max-width:100%}
 @media(max-width:1120px){.brand{min-width:220px}.brand-logo{width:112px}.brand-product strong{font-size:14px}}
 @media(max-width:620px){.brand{min-width:0;gap:8px}.brand-logo{width:92px;max-height:30px}.brand-divider{height:27px}.brand-product strong{font-size:12px}.brand-product span{font-size:9px}.topbar{gap:8px}.footer{align-items:flex-start;flex-wrap:wrap}.footer-branding{gap:8px}.footer-branding img{width:76px}.footer-branding>div{font-size:9px;line-height:1.45}}
 @media(max-width:380px){.brand-logo{width:78px}.brand-product strong{font-size:11px}.brand-product span{font-size:8px}.brand{gap:6px}}
+
+/* Final QA: keep the full desktop header within tablet/laptop viewports. */
+@media(max-width:1300px){.desktop-nav{display:none}.mobile-menu{display:grid}.desktop-reset{display:none}.mobile-nav{display:grid;position:sticky;top:72px;z-index:29;background:#fff;border-bottom:1px solid var(--border);padding:8px 18px;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px}.mobile-nav a{display:flex;align-items:center;justify-content:space-between;padding:8px;border-radius:7px;font-size:12px}}
+.top-actions{flex:none}.top-actions>.btn{white-space:nowrap;flex:none}.brand{flex:none}
+html,body{max-width:100%;overflow-x:clip}
+
+/* Final QA: WCAG AA text and primary button contrast overrides. */
+:root{--primary:#007A33;--brand-green:#007A33;--muted-foreground:#5E6B63}
+.btn-primary{background:#007A33;color:#fff}
+.small-note,.source-note,.kpi-card p,.team-card span,.source-list small,.field small,.disclosure,.muted,.claim-column p,.chart-summary,.panel-head p,.section-heading p,.page-header p,.empty-state p,.footer,.kpi-value small{color:#5E6B63}
+.small-note,.source-note,.kpi-card p,.team-card span,.source-list small,.field small,.disclosure,.chart-summary{font-size:11px}
+
+/* Final QA: minimum touch target dimensions for form controls and disclosures. */
+input[type=checkbox]{width:24px;height:24px;min-width:24px;min-height:24px;accent-color:#007A33;vertical-align:middle}
+.check-inline,.strategy-select label{min-height:24px;align-items:center}
+.disclosure summary{min-height:24px;display:flex;align-items:center}
+
+/* Catch small muted text and chart tick labels consistently across modules. */
+small:not(.prov),.muted,[class*="note"],.kpi-top,.field,.page-header p,.section-heading p,.panel-head p,.footer,.team-card span,.source-list small{color:#5E6B63!important}
+small:not(.prov){font-size:11px}
+svg text{fill:#5E6B63}
