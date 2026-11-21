@@ -94,25 +94,45 @@ describe("DISCOM event dispatch", () => {
     let covered = 0;
     for (let sequence = 0; sequence < 300; sequence++) {
       const event = runConsoleEvent({
-        dt, requestedKVA: 15, time: "18:45", durationMin: 30, holdoutPct: 10,
-        reserveFloor: 0.6, personaReservePercent: 65, p90OutageHours: 2,
-        criticalBackup: false, optOutNext: false, endStrategy: "Staggered deferred", sequence,
+        dt,
+        requestedKVA: 15,
+        time: "18:45",
+        durationMin: 30,
+        holdoutPct: 10,
+        reserveFloor: 0.6,
+        personaReservePercent: 65,
+        p90OutageHours: 2,
+        criticalBackup: false,
+        optOutNext: false,
+        endStrategy: "Staggered deferred",
+        sequence,
       });
       expect(event.holdoutStatus).toBe("available");
       expect(event.holdoutHomes).toBeGreaterThanOrEqual(5);
-      expect(event.rows.some((row) => row.home_id === "H-0412-017" && row.group === "holdout")).toBe(false);
+      expect(
+        event.rows.some((row) => row.home_id === "H-0412-017" && row.group === "holdout"),
+      ).toBe(false);
       expect(event.holdoutCI).not.toBeNull();
       expect(event.holdoutCI!).toBeLessThanOrEqual(20);
-      if (Math.abs(event.holdoutEstimateKVA! - event.deliveredTrueKVA) <= event.holdoutCI!) covered++;
+      if (Math.abs(event.holdoutEstimateKVA! - event.deliveredTrueKVA) <= event.holdoutCI!)
+        covered++;
     }
     expect(covered / 300).toBeGreaterThanOrEqual(0.9);
   });
 
   it("keeps zero-percent holdout distinct from a too-small sample", () => {
     const noHoldout = runConsoleEvent({
-      dt, requestedKVA: 15, time: "18:45", durationMin: 30, holdoutPct: 0,
-      reserveFloor: 0.6, p90OutageHours: 2, criticalBackup: false, optOutNext: false,
-      endStrategy: "Staggered deferred", sequence: 0,
+      dt,
+      requestedKVA: 15,
+      time: "18:45",
+      durationMin: 30,
+      holdoutPct: 0,
+      reserveFloor: 0.6,
+      p90OutageHours: 2,
+      criticalBackup: false,
+      optOutNext: false,
+      endStrategy: "Staggered deferred",
+      sequence: 0,
     });
     expect(noHoldout.holdoutStatus).toBe("none");
     expect(noHoldout.holdoutHomes).toBe(0);

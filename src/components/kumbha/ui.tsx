@@ -375,7 +375,13 @@ export function AppShell({ children }: { children: ReactNode }) {
                 onClick={() => setMenu(false)}
               />
             ))}
-            <button className="mobile-nav-reset" onClick={() => { setMenu(false); resetDemo(); }}>
+            <button
+              className="mobile-nav-reset"
+              onClick={() => {
+                setMenu(false);
+                resetDemo();
+              }}
+            >
               <RotateCcw size={14} /> Reset demo
             </button>
           </div>

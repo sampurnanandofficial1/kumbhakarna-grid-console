@@ -233,10 +233,9 @@ export function runConsoleEvent(req: EventRequest): ConsoleEvent {
   const holdGrid = holdout.map((item) => item.relief * 0.87 + normal(r, 0, 0.03));
   const dispatchGrid = dispatched.map(() => normal(r, 0, 0.03));
   const holdDiff = mean(holdGrid) - mean(dispatchGrid);
-  const hasHoldoutEstimate = holdoutStatus === "available" && holdout.length > 0 && dispatched.length > 0;
-  const holdoutEstimateKVA = hasHoldoutEstimate
-    ? (holdDiff * dispatched.length) / 0.87
-    : null;
+  const hasHoldoutEstimate =
+    holdoutStatus === "available" && holdout.length > 0 && dispatched.length > 0;
+  const holdoutEstimateKVA = hasHoldoutEstimate ? (holdDiff * dispatched.length) / 0.87 : null;
   const holdoutVariance = variance(holdGrid) / holdGrid.length;
   const dispatchVariance = variance(dispatchGrid) / dispatchGrid.length;
   const combinedVariance = holdoutVariance + dispatchVariance;
