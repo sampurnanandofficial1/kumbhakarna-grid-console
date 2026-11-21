@@ -294,11 +294,11 @@ function Overview() {
         <div className="team-grid">
           {team.members.map((m) => (
             <div className="team-card" key={m.name}>
-              {m.name === "Sampurn Anand" || m.name === "Zia Ur Rahman" ? (
+              {m.name === "Sampurn Anand" ? (
                 <img
                   className="team-avatar team-photo"
-                  src={m.name === "Sampurn Anand" ? "/sampurn-anand.webp" : "/zia-ur-rahman.webp"}
-                  alt={m.name}
+                  src="/sampurn-anand.webp"
+                  alt="Sampurn Anand"
                   width={52}
                   height={52}
                   loading="lazy"
