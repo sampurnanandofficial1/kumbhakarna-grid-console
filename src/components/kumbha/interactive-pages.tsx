@@ -2356,7 +2356,7 @@ function EconomicsPage() {
             <KpiCard label="Fee per DT-year" value={money(input.fee)} provenance="SIMULATED" />
             <KpiCard
               label="₹ / firm kW-year"
-              value={money(result.feePerFirmKWyr)}
+              value={result.feePerFirmKWyr === null ? "—" : money(result.feePerFirmKWyr)}
               provenance="SIMULATED"
             />
             <KpiCard
@@ -2435,7 +2435,7 @@ function EconomicsPage() {
               <ResponsiveContainer width="100%" height={250}>
                 <BarChart
                   data={[
-                    { name: "Kumbhakarna", value: result.feePerFirmKWyr },
+                    { name: "Kumbhakarna", value: result.feePerFirmKWyr ?? 0 },
                     { name: "2025 2-h BESS", value: 1776 },
                     { name: "MSEDCL 2-h BESS", value: 2880 },
                     { name: "BRPL Shivalik 2-h", value: 3591 },
