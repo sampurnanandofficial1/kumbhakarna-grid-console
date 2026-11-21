@@ -72,7 +72,8 @@ export const sources = [
   },
   {
     id: "ceaCyber",
-    label: "CEA (Cyber Security in Power Sector) Regulations, 2026 — notified Aug 2026, in force 1 Apr 2027",
+    label:
+      "CEA (Cyber Security in Power Sector) Regulations, 2026 — notified Aug 2026, in force 1 Apr 2027",
     url: "https://powerline.net.in/2026/08/14/cea-notifies-cea-cyber-security-in-power-sector-regulations-2026/",
   },
   {

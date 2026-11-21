@@ -2051,9 +2051,15 @@ function ConsolePage() {
                 />
                 <KpiCard
                   label="Holdout estimate"
-                  value={event.holdoutHomes === 0 ? "n/a — no holdout group" : fmt(event.holdoutEstimateKVA)}
+                  value={
+                    event.holdoutHomes === 0
+                      ? "n/a — no holdout group"
+                      : fmt(event.holdoutEstimateKVA)
+                  }
                   provenance="SIMULATED"
-                  {...(event.holdoutHomes > 0 ? { unit: "kVA", detail: "95% CI ±" + fmt(event.holdoutCI) + " kVA" } : {})}
+                  {...(event.holdoutHomes > 0
+                    ? { unit: "kVA", detail: "95% CI ±" + fmt(event.holdoutCI) + " kVA" }
+                    : {})}
                 />
                 <KpiCard
                   label="Rebound"
@@ -2365,7 +2371,11 @@ function EconomicsPage() {
             />
             <KpiCard
               label="Onboarding payback"
-              value={result.onboardingPaybackMonths === null ? "Not reached" : fmt(result.onboardingPaybackMonths, 1)}
+              value={
+                result.onboardingPaybackMonths === null
+                  ? "Not reached"
+                  : fmt(result.onboardingPaybackMonths, 1)
+              }
               provenance="SIMULATED"
               {...(result.onboardingPaybackMonths !== null ? { unit: "months" } : {})}
             />
@@ -2378,7 +2388,11 @@ function EconomicsPage() {
               label="Deferral PV"
               value={result.deferralPV === null ? "—" : money(result.deferralPV)}
               provenance="SIMULATED"
-              detail={result.deferralYears === null ? "—" : fmt(result.deferralYears, 2) + " years of deferral"}
+              detail={
+                result.deferralYears === null
+                  ? "—"
+                  : fmt(result.deferralYears, 2) + " years of deferral"
+              }
             />
           </div>
           <ChartCard

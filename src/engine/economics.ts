@@ -67,8 +67,7 @@ export function calculateEconomics(i: EconomicsInput) {
     cloud = drHomes * i.cloudPerDRHome + srOnly * i.cloudPerSROnlyHome,
     mv = i.mvCost,
     contribution = i.fee - credits - cloud - mv;
-  const onboardingPaybackMonths =
-    contribution > 0 ? i.onboardingCost / (contribution / 12) : null;
+  const onboardingPaybackMonths = contribution > 0 ? i.onboardingCost / (contribution / 12) : null;
   const creditPerHome = drHomes ? credits / drHomes : 0,
     wear = ((i.eventsPerYear * i.kWhPerEvent) / i.batteryKWh / i.cycleLifeFEC) * i.batteryPrice,
     householdNet = creditPerHome - wear;
