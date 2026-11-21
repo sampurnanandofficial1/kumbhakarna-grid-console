@@ -125,3 +125,18 @@ Reference: [Schneider Electric Brand Guidelines, November 2017, pp. 35–39](htt
 - Nunito remains declared as the preferred digital typeface, with Arial fallback. No font asset is bundled because the project permits no additional network requests beyond the Open-Meteo forecast and no new dependencies.
 - Unknown dynamic page IDs are rendered through the client-only not-found component. The route is intentionally client-rendered per the project routing rules; HTTP status behavior is therefore not represented as a verified server-side 404.
 - Production deployment was requested from Lovable; the deployment API returned `pending`. Verify the published URL after the host completes deployment.
+
+
+## Final QA pass (2026-11-21)
+- Initial axe-core baseline supplied in the task: 133 color-contrast violations.
+- Post-change axe-core: not executed in the available environment; zero violations are not claimed. Run axe-core against all eight routes before release sign-off.
+- Responsive header: desktop nav is replaced by the existing mobile menu below 1280 px; Guided demo is nowrap.
+- Economics: undefined payback and deferral outputs are null and rendered as “Not reached” / “—”; regression tests cover non-positive contribution, zero load growth and zero firm P90.
+- Holdout: zero holdout homes displays “n/a — no holdout group”.
+- Touch targets: checkbox and disclosure summary targets are at least 24 px.
+- Flex enrolment labels and rebound chart tick font sizes updated; simulation inputs and calculations unchanged.
+- CEA Cyber Security 2026 source and Schneider hackathon-credit logo rule updated.
+- Removed root sweep.txt.
+- No dependencies, lockfiles, build/router configuration or generated route tree changed.
+- Restoration, Flex simulation and Console event numerical logic were not changed.
+- Local bun install --frozen-lockfile, bun x eslint . --fix, build, lint, typecheck, tests, dev-server route curls and browser width matrix could not be run from this execution environment. GitHub Actions results are the release gate.
