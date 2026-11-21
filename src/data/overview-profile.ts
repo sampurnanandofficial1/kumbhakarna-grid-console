@@ -247,4 +247,4 @@ export const overviewProfile = {
       "smartDtAware": 91.2704
     }
   ]
-} as const;
+};

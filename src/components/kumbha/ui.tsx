@@ -214,6 +214,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       return () => document.removeEventListener("keydown", onKeyDown);
     }
     if (wasOpen.current) { wasOpen.current = false; triggerRef.current?.focus(); }
+    return undefined;
   }, [tour]);
   useEffect(() => {
     try {
@@ -224,6 +225,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         return () => window.clearTimeout(id);
       }
     } catch {}
+    return undefined;
   }, []);
   const resetDemo = () => {
     resetDemoStore();
