@@ -2047,10 +2047,10 @@ function ConsolePage() {
                 />
                 <KpiCard
                   label="Holdout estimate"
-                  value={fmt(event.holdoutEstimateKVA)}
-                  unit="kVA"
+                  value={event.holdoutHomes === 0 ? "n/a — no holdout group" : fmt(event.holdoutEstimateKVA)}
+                  unit={event.holdoutHomes === 0 ? undefined : "kVA"}
                   provenance="SIMULATED"
-                  detail={"95% CI ±" + fmt(event.holdoutCI) + " kVA"}
+                  detail={event.holdoutHomes === 0 ? undefined : "95% CI ±" + fmt(event.holdoutCI) + " kVA"}
                 />
                 <KpiCard
                   label="Rebound"
