@@ -308,7 +308,10 @@ export function runFlexEvents(input: FlexInput): FlexResult {
     { label: "After opt-out", count: Math.round(afterOptOut) },
     { label: "After comms", count: Math.round(afterComms) },
     { label: "After health", count: Math.round(afterHealth) },
-    { label: "After Reserve Guard", count: Math.round(Math.max(0, afterHealth - reserveGuardExclusions)) },
+    {
+      label: "After Reserve Guard",
+      count: Math.round(Math.max(0, afterHealth - reserveGuardExclusions)),
+    },
   ];
   const rebound = simulateRebound(
     hashSeed("flex-rebound:" + input.seed),

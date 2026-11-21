@@ -119,7 +119,10 @@ function Select({
   return (
     <select value={String(value)} onChange={(e) => onChange(e.target.value)}>
       {options.map((o) => (
-        <option key={typeof o === "object" ? o.value : o} value={typeof o === "object" ? o.value : o}>
+        <option
+          key={typeof o === "object" ? o.value : o}
+          value={typeof o === "object" ? o.value : o}
+        >
           {typeof o === "object" ? o.label : o}
         </option>
       ))}
@@ -908,7 +911,15 @@ function ScenariosPage() {
             <input type="number" value={seed} onChange={(e) => setSeed(Number(e.target.value))} />
           </Field>
           <Field label="Heatmap metric">
-            <Select value={metric} onChange={setMetric} options={[{ value: "overload", label: "Overload energy (kVAh)" }, { value: "minutes", label: "Minutes above 100%" }, { value: "peak", label: "Peak loading (%)" }]} />
+            <Select
+              value={metric}
+              onChange={setMetric}
+              options={[
+                { value: "overload", label: "Overload energy (kVAh)" },
+                { value: "minutes", label: "Minutes above 100%" },
+                { value: "peak", label: "Peak loading (%)" },
+              ]}
+            />
           </Field>
           <Field label="Report reference">
             <label className="check-inline">
@@ -1945,7 +1956,10 @@ function ConsolePage() {
                 <Select
                   value={duration}
                   onChange={(v) => setDuration(Number(v) as 15 | 30)}
-                  options={[{ value: 15, label: "15 min" }, { value: 30, label: "30 min" }]}
+                  options={[
+                    { value: 15, label: "15 min" },
+                    { value: 30, label: "30 min" },
+                  ]}
                 />
               </Field>
               <Field label="Holdout share">
@@ -2200,7 +2214,11 @@ function EconomicsPage() {
       <div className="economics-layout">
         <Panel title="Model inputs" subtitle="Choose a case, then edit assumptions">
           <Field label="Scenario">
-            <Select value={input.caseId} onChange={choose} options={cases.map((c) => ({ value: c.id, label: c.label }))} />
+            <Select
+              value={input.caseId}
+              onChange={choose}
+              options={cases.map((c) => ({ value: c.id, label: c.label }))}
+            />
           </Field>
           <div className="control-grid">
             <Field label="Firm P90 kVA">

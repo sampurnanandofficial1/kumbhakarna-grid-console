@@ -222,20 +222,47 @@ function Overview() {
           title="Simulated restoration profile"
           subtitle="Mean transformer loading · 250 kVA nameplate · 5-minute samples"
           provenance="SIMULATED"
-          summary={"Across 60 seeded runs, mean run peak loading was " + overviewProfile.peaks.noControl.toFixed(2) + "% for No control and " + overviewProfile.peaks.smartDtAware.toFixed(2) + "% for transformer-aware Smart Recharge. This is engine output, not a field result."}
+          summary={
+            "Across 60 seeded runs, mean run peak loading was " +
+            overviewProfile.peaks.noControl.toFixed(2) +
+            "% for No control and " +
+            overviewProfile.peaks.smartDtAware.toFixed(2) +
+            "% for transformer-aware Smart Recharge. This is engine output, not a field result."
+          }
         >
           <ClientOnly>
             <ResponsiveContainer width="100%" height={250}>
               <LineChart data={overviewProfile.series}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis type="number" dataKey="minute" domain={[0, 240]} ticks={Array.from({ length: 9 }, (_, i) => i * 30)} tickFormatter={(v) => v + " min"} />
+                <XAxis
+                  type="number"
+                  dataKey="minute"
+                  domain={[0, 240]}
+                  ticks={Array.from({ length: 9 }, (_, i) => i * 30)}
+                  tickFormatter={(v) => v + " min"}
+                />
                 <YAxis domain={[0, 140]} tickFormatter={(v) => v + "%"} />
-                <Tooltip labelFormatter={(v) => v + " min"} formatter={(v) => Number(v).toFixed(2) + "%"} />
+                <Tooltip
+                  labelFormatter={(v) => v + " min"}
+                  formatter={(v) => Number(v).toFixed(2) + "%"}
+                />
                 <Legend />
                 <ReferenceLine y={100} stroke="#8C9C93" strokeDasharray="4 4" label="100%" />
                 <ReferenceLine y={120} stroke="#C8423F" strokeDasharray="4 4" label="120%" />
-                <Line dataKey="noControl" name="No control" stroke="#C8423F" strokeWidth={2.5} dot={false} />
-                <Line dataKey="smartDtAware" name="Smart Recharge · transformer-aware" stroke="#005C30" strokeWidth={2.5} dot={false} />
+                <Line
+                  dataKey="noControl"
+                  name="No control"
+                  stroke="#C8423F"
+                  strokeWidth={2.5}
+                  dot={false}
+                />
+                <Line
+                  dataKey="smartDtAware"
+                  name="Smart Recharge · transformer-aware"
+                  stroke="#005C30"
+                  strokeWidth={2.5}
+                  dot={false}
+                />
               </LineChart>
             </ResponsiveContainer>
           </ClientOnly>
