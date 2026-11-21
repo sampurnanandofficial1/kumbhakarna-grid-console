@@ -292,26 +292,23 @@ export function runFlexEvents(input: FlexInput): FlexResult {
   const meanAvailableHomes = mean(availableCounts);
   const availabilityPct = enrolled ? (meanAvailableHomes / enrolled) * 100 : 0;
   const meanEnergyKWh = mean(energyTotals);
+  const eventsObserved = Math.max(1, input.events);
+  const meanExcluded = (reason: string) => (exclusionTotals[reason] ?? 0) / eventsObserved;
+  const afterOptOut = Math.max(0, enrolled - meanExcluded("Opted out"));
+  const afterComms = Math.max(0, afterOptOut - meanExcluded("Communication failure"));
+  const afterHealth = Math.max(0, afterComms - meanExcluded("Battery health exclusion"));
+  const reserveGuardExclusions =
+    meanExcluded("Critical backup protected") +
+    meanExcluded("Inverter load above 70% rating") +
+    meanExcluded("Previous event within 3 hours") +
+    meanExcluded("Projected SOC below reserve");
   const funnel = [
     { label: "Inverter homes", count: Math.round(input.homes * input.inverterShare) },
     { label: "Enrolled", count: enrolled },
-    { label: "After opt-out", count: Math.round(enrolled * (1 - (input.optOut ?? 0.1))) },
-    {
-      label: "After comms",
-      count: Math.round(
-        enrolled * (1 - (input.optOut ?? 0.1)) * (1 - (input.commsFailure ?? 0.03)),
-      ),
-    },
-    {
-      label: "After health",
-      count: Math.round(
-        enrolled *
-          (1 - (input.optOut ?? 0.1)) *
-          (1 - (input.commsFailure ?? 0.03)) *
-          (1 - (input.healthExclusion ?? 0.05)),
-      ),
-    },
-    { label: "After Reserve Guard", count: Math.round(meanAvailableHomes) },
+    { label: "After opt-out", count: Math.round(afterOptOut) },
+    { label: "After comms", count: Math.round(afterComms) },
+    { label: "After health", count: Math.round(afterHealth) },
+    { label: "After Reserve Guard", count: Math.round(Math.max(0, afterHealth - reserveGuardExclusions)) },
   ];
   const rebound = simulateRebound(
     hashSeed("flex-rebound:" + input.seed),
