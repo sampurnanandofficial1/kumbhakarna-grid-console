@@ -2,7 +2,6 @@ import { createContext, useContext, useEffect, useRef, useState, type ReactNode 
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import {
   Activity,
-  BatteryCharging,
   Bolt,
   ChevronRight,
   Menu,
@@ -334,10 +333,15 @@ export function AppShell({ children }: { children: ReactNode }) {
       <div className="app-frame">
         <header className="topbar">
           <div className="brand">
-            <div className="brand-mark">
-              <BatteryCharging size={20} />
-            </div>
-            <div>
+            <img
+              className="brand-logo"
+              src="/schneider-electric-logo.svg"
+              alt="Schneider Electric"
+              width="126"
+              height="38"
+            />
+            <span className="brand-divider" aria-hidden="true" />
+            <div className="brand-product">
               <strong>Kumbhakarna</strong>
               <span>Grid-Edge Console</span>
             </div>
@@ -388,9 +392,19 @@ export function AppShell({ children }: { children: ReactNode }) {
         {reset && <div className="toast">Demo state reset</div>}
         {children}
         <footer className="footer">
-          <div>
-            <strong>Team AA Jewels</strong> · IIM Lucknow · Yuva Yodha Energy Tech Hackathon ·
-            Challenge 03
+          <div className="footer-branding">
+            <img
+              src="/schneider-electric-logo.svg"
+              alt="Schneider Electric"
+              width="92"
+              height="28"
+              loading="lazy"
+            />
+            <span className="footer-divider" aria-hidden="true" />
+            <div>
+              <strong>Team AA Jewels</strong> · IIM Lucknow · Yuva Yodha Energy Tech Hackathon ·
+              Challenge 03
+            </div>
           </div>
           <InternalLink
             href="/method"
