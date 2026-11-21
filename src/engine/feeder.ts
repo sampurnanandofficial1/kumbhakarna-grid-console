@@ -229,10 +229,13 @@ export function runConsoleEvent(req: EventRequest): ConsoleEvent {
     dispatchVariance ** 2 / Math.max(1, dispatchGrid.length - 1);
   const degreesFreedom =
     welchDenominator > 0 ? combinedVariance ** 2 / welchDenominator : 30;
+  // Inflate the small-sample interval for reserve-headroom prioritisation versus random holdouts.
+  const holdoutSelectionAdjustment = 1.25;
   const holdoutCI =
     holdout.length && dispatched.length
       ? (studentT95(degreesFreedom) *
           Math.sqrt(combinedVariance) *
+          holdoutSelectionAdjustment *
           dispatched.length) /
         0.87
       : 0;
