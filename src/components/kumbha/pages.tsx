@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Sparkles } from "lucide-react";
 import { useGuidedDemo } from "./ui";
+import { Link } from "@tanstack/react-router";
 import { InteractivePage } from "./interactive-pages";
 import {
   ArrowRight,
@@ -81,12 +82,12 @@ function Overview() {
             <button className="btn btn-primary" onClick={startGuidedDemo}>
               <Sparkles size={16} /> Start guided demo
             </button>
-            <a className="btn btn-primary" href="/restoration">
+            <Link className="btn btn-primary" to="/$page" params={{ page: "restoration" }}>
               Open Restoration Lab <ArrowRight size={16} />
-            </a>
-            <a className="btn btn-secondary" href="/method">
+            </Link>
+            <Link className="btn btn-secondary" to="/$page" params={{ page: "method" }}>
               Explore the evidence
-            </a>
+            </Link>
           </div>
           <div className="hero-footnote">
             <ShieldCheck size={15} /> Reserve protection stays on the device, even offline.

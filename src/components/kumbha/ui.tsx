@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import {
   Activity,
   BatteryCharging,
@@ -12,6 +12,12 @@ import {
 } from "lucide-react";
 import { hydrateDemoStore, resetDemoStore, setDemoState, useDemoStore } from "../../lib/demo-store";
 import type { Provenance } from "../../data/reference";
+
+type PageSlug = "restoration" | "scenarios" | "flex" | "household" | "console" | "economics" | "method";
+function InternalLink({ href, label, active, onClick }: { href: string; label: string; active: boolean; onClick?: () => void }) {
+  const current = { "aria-current": active ? "page" as const : undefined, onClick };
+  return href === "/" ? <Link to="/" {...current}>{label}</Link> : <Link to="/$page" params={{ page: href.slice(1) as PageSlug }} {...current}>{label}</Link>;
+}
 
 const nav = [
   ["/", "Overview"],
@@ -172,6 +178,7 @@ const tourSteps = [
 ] as const;
 
 export function AppShell({ children }: { children: ReactNode }) {
+  const location = useLocation();
   const [menu, setMenu] = useState(false);
   const [tour, setTour] = useState(false);
   const [reset, setReset] = useState(false);
@@ -243,9 +250,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
         <nav className="desktop-nav">
           {nav.map(([href, label]) => (
-            <a key={href} href={href}>
-              {label}
-            </a>
+            <InternalLink key={href} href={href} label={label} active={location.pathname === href} />
           ))}
         </nav>
         <div className="top-actions">
@@ -267,10 +272,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       {menu && (
         <div className="mobile-nav">
           {nav.map(([href, label]) => (
-            <a key={href} href={href} onClick={() => setMenu(false)}>
-              {label}
-              <ChevronRight size={14} />
-            </a>
+            <InternalLink key={href} href={href} label={label} active={location.pathname === href} onClick={() => setMenu(false)} />
           ))}
         </div>
       )}
@@ -285,7 +287,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <strong>Team AA Jewels</strong> · IIM Lucknow · Yuva Yodha Energy Tech Hackathon ·
           Challenge 03
         </div>
-        <a href="/method">Method & Evidence</a>
+        <InternalLink href="/method" label="Method & Evidence" active={location.pathname === "/method"} />
       </footer>
       {tour && (
         <div className="tour-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) closeTour(); }}>
