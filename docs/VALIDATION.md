@@ -62,15 +62,15 @@ These are synthetic capacity estimates after the engine's opt-out, communication
 
 ## Rebound by end strategy
 
-**Run:** 50 seeded rebound realisations per scenario, 30-minute prior event, same population assumptions and seed 2026. Values are mean 90-minute coincident recharge peak, scaled to the selected enrolment. Lower peak indicates less synchronised return-to-grid demand; it does not mean recharge energy has disappeared.
+**Run:** 50 seeded rebound realisations per scenario, 30-minute prior event, seed 2026. Each run simulates 80% of the enrolled participant count (minimum 20 participants); that participant count already captures enrolment, so no second enrolment multiplier is applied. Values are mean 90-minute coincident recharge peak. Lower peak indicates less synchronised return-to-grid demand; it does not mean recharge energy has disappeared.
 
-| Enrolment | Naive end (kVA) | Staggered half (kVA) | Staggered deferred (kVA) |
-|---:|---:|---:|---:|
-| 25% | 5.33 | 2.62 | 0.31 |
-| 40% | 13.49 | 6.61 | 0.77 |
-| 60% | 30.07 | 14.73 | 1.72 |
+| Enrolment | Before fix · naive (kVA) | Before fix · half (kVA) | Before fix · deferred (kVA) | Corrected · naive (kVA) | Corrected · half (kVA) | Corrected · deferred (kVA) |
+|---:|---:|---:|---:|---:|---:|---:|
+| 25% | 5.33 | 2.62 | 0.31 | 8.53 | 4.19 | 0.50 |
+| 40% | 13.49 | 6.61 | 0.77 | 13.49 | 6.61 | 0.77 |
+| 60% | 30.07 | 14.73 | 1.72 | 20.05 | 9.82 | 1.15 |
 
-Deferred recharge reduces the immediate rebound peak by moving energy later; the schedule and household reserve constraints still need operational validation.
+The previous output applied an enrolment multiplier even though the simulated participant count already changed with enrolment. The corrected output removes that second scaling; 40% is unchanged because its former multiplier was 1. Deferred recharge reduces the immediate rebound peak by moving energy later; the schedule and household reserve constraints still need operational validation.
 
 ## Reproduction
 
@@ -80,3 +80,11 @@ Deferred recharge reduces the immediate rebound peak by moving energy later; the
 - Overview chart: mean loading at 5-minute intervals from `NO_CONTROL` and `SMART_DT_AWARE`; the committed data is checked against a fresh engine run by `overview-profile.test.ts`.
 
 No restoration or flex model values were changed to produce this documentation.
+
+## Typography and responsive implementation
+
+The November 2017 Schneider Electric Brand Guidelines specify **Nunito** for digital applications and advertisements (page 39), with Arial as a substitute typeface in the wider typography system. The guide directs employees and agencies to the controlled Brand Book 2.0 portals for current brand assets. This prototype therefore uses a local/system-first `Nunito, Arial, sans-serif` stack and makes no third-party font request; it does not bundle a proprietary desktop font or fetch a font from a CDN. The brand guide is a November 2017 edition, so the current controlled brand portal remains the authority for any later revisions.
+
+Responsive guardrails added: grid/flex content children are allowed to shrink, visual media are constrained to their containers, and the not-found card and guided-demo panel use narrow-screen padding rules. These are code-level safeguards, not a substitute for real-device/browser validation.
+
+Reference: [Schneider Electric Brand Guidelines, November 2017, pp. 35–39](https://www.eventservice.kr/2018/_guide/SE_Brand_Guidelines.pdf) (the document identifies itself as confidential Schneider Electric material and points to the controlled Brand Book 2.0 portals for access).

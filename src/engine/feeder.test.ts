@@ -55,6 +55,37 @@ describe("DISCOM event dispatch", () => {
     expect(persona80?.exclusion_reason).toBe("Projected SOC below reserve");
   });
 
+  it("covers true delivery in the 95% holdout interval across 200 seeded event sequences", () => {
+    const transformer = buildDemoFeeder().find((item) => item.id === "DT-0401")!;
+    let covered = 0;
+    let observed = 0;
+    for (let sequence = 0; sequence < 200; sequence++) {
+      const event = runConsoleEvent({
+        dt: transformer,
+        requestedKVA: 12,
+        time: "18:45",
+        durationMin: 30,
+        holdoutPct: 20,
+        reserveFloor: 0.6,
+        p90OutageHours: 2,
+        criticalBackup: false,
+        optOutNext: false,
+        endStrategy: "Staggered deferred",
+        sequence,
+      });
+      if (event.holdoutHomes > 1 && event.participants > 1) {
+        observed++;
+        if (Math.abs(event.holdoutEstimateKVA - event.deliveredTrueKVA) <= event.holdoutCI) {
+          covered++;
+        }
+      }
+    }
+    expect(observed).toBe(200);
+    const coverage = covered / observed;
+    expect(coverage).toBeGreaterThanOrEqual(0.9);
+    expect(coverage).toBeLessThanOrEqual(0.99);
+  });
+
   it("caps dispatch near the requested amount and preserves the full persona ID in CSV", () => {
     const event = request(65);
     expect(event.dispatchedKVA).toBeLessThanOrEqual(15 * 1.1 + 0.6);

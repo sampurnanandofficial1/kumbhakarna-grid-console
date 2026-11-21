@@ -1,5 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { reserveGuard, evaluateFlexHome, runFlexEvents, simulateFlex } from "./flex";
+import {
+  DEFAULT_FLEX,
+  reserveGuard,
+  evaluateFlexHome,
+  runFlexEvents,
+  simulateFlex,
+} from "./flex";
 const home = {
   id: "H-1",
   basicKW: 0.24,
@@ -69,6 +75,20 @@ describe("Reserve Guard and firm flexibility", () => {
     expect(result.rebound.series.some((point) => point.naive > 0)).toBe(true);
     expect(result.rebound.series[0]?.minute).toBe(0);
     expect(result.rebound.series[89]?.minute).toBe(89);
+  });
+
+  it("uses participant count as the only enrolment scaling for rebound", () => {
+    const scenarios = [
+      { enrolment: 0.25, expected: [8.53, 4.19, 0.5] },
+      { enrolment: 0.4, expected: [13.49, 6.61, 0.77] },
+      { enrolment: 0.6, expected: [20.05, 9.82, 1.15] },
+    ];
+    for (const scenario of scenarios) {
+      const result = runFlexEvents({ ...DEFAULT_FLEX, enrolment: scenario.enrolment });
+      expect(result.rebound.naive).toBeCloseTo(scenario.expected[0]!, 1);
+      expect(result.rebound.staggeredHalf).toBeCloseTo(scenario.expected[1]!, 1);
+      expect(result.rebound.deferred).toBeCloseTo(scenario.expected[2]!, 1);
+    }
   });
 
   it("derives each funnel stage from observed simulated exclusion counts", () => {

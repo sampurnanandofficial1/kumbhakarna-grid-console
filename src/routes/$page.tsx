@@ -1,6 +1,6 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { PageScreen } from "../components/kumbha/pages";
-import { getPageTitle, isPageId } from "./page-ids";
+import { getPageTitle, isPageId } from "../lib/page-ids";
 
 function Pending() {
   return (

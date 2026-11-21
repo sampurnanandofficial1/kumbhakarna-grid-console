@@ -216,23 +216,32 @@ export function runConsoleEvent(req: EventRequest): ConsoleEvent {
   const dispatchedEnergyKWh = dispatched.reduce((sum, item) => sum + item.energy, 0);
   const deviceMeteredKVA = deliveredTrueKVA * (1 + normal(r, 0, 0.025));
   const smartMeterCheckKVA = deliveredTrueKVA * (1 + normal(r, 0, 0.03));
-  const holdGrid = holdout.map((item) => item.home.backedKW + normal(r, 0, 0.03));
-  const dispatchGrid = dispatched.map(() => Math.max(0, normal(r, 0, 0.03)));
+  const holdGrid = holdout.map((item) => item.relief * 0.87 + normal(r, 0, 0.03));
+  const dispatchGrid = dispatched.map(() => normal(r, 0, 0.03));
   const holdDiff = mean(holdGrid) - mean(dispatchGrid);
   const holdoutEstimateKVA =
     holdout.length && dispatched.length ? (holdDiff * dispatched.length) / 0.87 : deliveredTrueKVA;
+  const holdoutVariance = variance(holdGrid) / holdGrid.length;
+  const dispatchVariance = variance(dispatchGrid) / dispatchGrid.length;
+  const combinedVariance = holdoutVariance + dispatchVariance;
+  const welchDenominator =
+    holdoutVariance ** 2 / Math.max(1, holdGrid.length - 1) +
+    dispatchVariance ** 2 / Math.max(1, dispatchGrid.length - 1);
+  const degreesFreedom =
+    welchDenominator > 0 ? combinedVariance ** 2 / welchDenominator : 30;
+  // Inflate the small-sample interval for reserve-headroom prioritisation versus random holdouts.
+  const holdoutSelectionAdjustment = 1.25;
   const holdoutCI =
     holdout.length && dispatched.length
-      ? (1.96 *
-          Math.sqrt(
-            variance(holdGrid) / holdGrid.length + variance(dispatchGrid) / dispatchGrid.length,
-          ) *
+      ? (studentT95(degreesFreedom) *
+          Math.sqrt(combinedVariance) *
+          holdoutSelectionAdjustment *
           dispatched.length) /
         0.87
       : 0;
   const rebound =
     dispatched.length > 0
-      ? simulateRebound(hashSeed(eventId) + 9, dt.enrolment, req.durationMin, dispatched.length)
+      ? simulateRebound(hashSeed(eventId) + 9, req.durationMin, dispatched.length)
       : { naive: 0, staggeredHalf: 0, deferred: 0 };
   const reboundKVA =
     req.endStrategy === "Naive"
@@ -298,6 +307,48 @@ export function runConsoleEvent(req: EventRequest): ConsoleEvent {
     dispatchedEnergyKWh,
   };
 }
+function studentT95(degreesFreedom: number) {
+  const critical = [
+    0,
+    12.706,
+    4.303,
+    3.182,
+    2.776,
+    2.571,
+    2.447,
+    2.365,
+    2.306,
+    2.262,
+    2.228,
+    2.201,
+    2.179,
+    2.16,
+    2.145,
+    2.131,
+    2.12,
+    2.11,
+    2.101,
+    2.093,
+    2.086,
+    2.08,
+    2.074,
+    2.069,
+    2.064,
+    2.06,
+    2.056,
+    2.052,
+    2.048,
+    2.045,
+    2.042,
+  ];
+  const df = Math.max(1, Math.min(30, degreesFreedom));
+  const lower = Math.floor(df);
+  const upper = Math.ceil(df);
+  const lowerValue = critical[lower] ?? 2.042;
+  const upperValue = critical[upper] ?? 2.042;
+  return lowerValue + (upperValue - lowerValue) * (df - lower);
+}
+
 function variance(xs: number[]) {
   if (xs.length < 2) return 0;
   const m = mean(xs);
