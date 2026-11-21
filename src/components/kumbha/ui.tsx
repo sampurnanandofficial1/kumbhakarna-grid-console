@@ -10,7 +10,7 @@ import {
   Sparkles,
   X,
 } from "lucide-react";
-import { resetDemoStore, setDemoState, useDemoStore } from "../../lib/demo-store";
+import { hydrateDemoStore, resetDemoStore, setDemoState, useDemoStore } from "../../lib/demo-store";
 import type { Provenance } from "../../data/reference";
 
 type PageSlug = "restoration" | "scenarios" | "flex" | "household" | "console" | "economics" | "method";
@@ -187,6 +187,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const triggerRef = useRef<HTMLButtonElement>(null);
   const wasOpen = useRef(false);
   const navigate = useNavigate();
+  useEffect(() => { hydrateDemoStore(); }, []);
   const openTour = () => setTour(true);
   const closeTour = () => setTour(false);
   const goToStep = (step: number) => setDemoState({ tourStep: Math.max(0, Math.min(7, step)) });
