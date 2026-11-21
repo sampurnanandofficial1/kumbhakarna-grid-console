@@ -1690,15 +1690,15 @@ function ConsolePage() {
   const flexBaseCase = useMemo(() => runFlexEvents(DEFAULT_FLEX), []);
   const baseCaseEnergyKWh =
     flexBaseCase.meanAvailableHomes * flexBaseCase.meanEnergyKWh;
+  const dispatchedEnergyKWh = event?.dispatchedEnergyKWh;
   useEffect(() => {
     hydrateDemoStore();
   }, []);
   const refreshSolar = useCallback(async () => {
     setWeatherBusy(true);
     try {
-      const targetEnergyKWh = event
-        ? event.dispatchedEnergyKWh / 0.88
-        : baseCaseEnergyKWh;
+      const targetEnergyKWh =
+        dispatchedEnergyKWh !== undefined ? dispatchedEnergyKWh / 0.88 : baseCaseEnergyKWh;
       setSolar(
         await loadSolar(
           CITIES.find((c) => c.name === city) ?? CITIES[0]!,
@@ -1709,7 +1709,7 @@ function ConsolePage() {
     } finally {
       setWeatherBusy(false);
     }
-  }, [city, threshold, event?.dispatchedEnergyKWh, baseCaseEnergyKWh]);
+  }, [city, threshold, dispatchedEnergyKWh, baseCaseEnergyKWh]);
   useEffect(() => {
     void refreshSolar();
   }, [refreshSolar]);
