@@ -194,7 +194,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const currentStep = tourSteps[store.tourStep] ?? tourSteps[0];
   const takeMeThere = () => {
     if (currentStep.href === "/") void navigate({ to: "/" });
-    else void navigate({ to: "/$page", params: { page: currentStep.href.slice(1) } });
+    else void navigate({ to: "/$page", params: { page: currentStep.href.slice(1) as PageSlug } });
   };
   useEffect(() => {
     if (tour) {

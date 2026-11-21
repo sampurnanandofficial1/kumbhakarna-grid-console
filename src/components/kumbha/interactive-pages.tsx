@@ -971,7 +971,7 @@ function ScenariosPage() {
                       {metric === "overload"
                         ? "kVAh"
                         : metric === "minutes"
-                          ? "min >120%"
+                          ? "min >100%"
                           : "peak %"}
                     </span>
                     {showRef && <em>TR Table 40: see Method</em>}
