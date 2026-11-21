@@ -2457,7 +2457,15 @@ function EconomicsPage() {
                   ]}
                 >
                   <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                  <XAxis dataKey="name" />
+                  <XAxis
+                    dataKey="name"
+                    interval={0}
+                    angle={-18}
+                    textAnchor="end"
+                    height={66}
+                    tickMargin={8}
+                    tick={{ fontSize: 10 }}
+                  />
                   <YAxis />
                   <Tooltip formatter={(v) => money(Number(v))} />
                   <Bar dataKey="value" fill="#2F7FB5" />
