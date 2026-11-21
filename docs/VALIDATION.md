@@ -116,3 +116,12 @@ Reference: [Schneider Electric Brand Guidelines, November 2017, pp. 35–39](htt
 - Chart keys now have top spacing on every chart (9 charts), so they no longer cover x-axis titles such as "Minutes after restoration".
 - Guided demo at 360px and 390px: bottom sheet is full width, Finish is 42px tall and fully on screen, and Finish closes the dialog.
 - Vitest: 26/26 passed. Build OK. Full-project `bun run lint` did not finish within 5 minutes in the sandbox, so it is not verified here and should be run in CI.
+
+
+## Release verification follow-up
+
+- Mobile viewport QA at 360px and 390px was performed in headless Chromium; this is emulated browser coverage, not physical iOS/Android device certification.
+- The local Lovable agent reported 26/26 Vitest tests and a successful production build. Full-project ESLint did not complete within its five-minute execution window; the GitHub Actions quality-gates workflow is the authoritative rerun for typecheck, build, formatting, lint, tests and SSR route smoke checks.
+- Nunito remains declared as the preferred digital typeface, with Arial fallback. No font asset is bundled because the project permits no additional network requests beyond the Open-Meteo forecast and no new dependencies.
+- Unknown dynamic page IDs are rendered through the client-only not-found component. The route is intentionally client-rendered per the project routing rules; HTTP status behavior is therefore not represented as a verified server-side 404.
+- Production deployment was requested from Lovable; the deployment API returned `pending`. Verify the published URL after the host completes deployment.
