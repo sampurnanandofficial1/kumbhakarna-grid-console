@@ -294,10 +294,18 @@ function Overview() {
         <div className="team-grid">
           {team.members.map((m) => (
             <div className="team-card" key={m.name}>
-              {m.name === "Sampurn Anand" || m.name === "Zia Ur Rahman" ? (
+              {["Sampurn Anand", "Zia Ur Rahman", "Mayank Kumar", "Keren Megha Tudu"].includes(m.name) ? (
                 <img
                   className="team-avatar team-photo"
-                  src={m.name === "Sampurn Anand" ? "/sampurn-anand.webp" : "/zia-ur-rahman.webp"}
+                  src={
+                    m.name === "Sampurn Anand"
+                      ? "/sampurn-anand.jpg"
+                      : m.name === "Zia Ur Rahman"
+                        ? "/zia-ur-rahman.webp"
+                        : m.name === "Mayank Kumar"
+                          ? "/mayank-kumar-profile.jpg"
+                          : "/keren-megha-tudu.jpg"
+                  }
                   alt={m.name}
                   width={52}
                   height={52}
