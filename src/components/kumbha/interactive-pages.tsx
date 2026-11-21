@@ -2052,9 +2052,8 @@ function ConsolePage() {
                 <KpiCard
                   label="Holdout estimate"
                   value={event.holdoutHomes === 0 ? "n/a — no holdout group" : fmt(event.holdoutEstimateKVA)}
-                  unit={event.holdoutHomes === 0 ? undefined : "kVA"}
                   provenance="SIMULATED"
-                  detail={event.holdoutHomes === 0 ? undefined : "95% CI ±" + fmt(event.holdoutCI) + " kVA"}
+                  {...(event.holdoutHomes > 0 ? { unit: "kVA", detail: "95% CI ±" + fmt(event.holdoutCI) + " kVA" } : {})}
                 />
                 <KpiCard
                   label="Rebound"
@@ -2367,8 +2366,8 @@ function EconomicsPage() {
             <KpiCard
               label="Onboarding payback"
               value={result.onboardingPaybackMonths === null ? "Not reached" : fmt(result.onboardingPaybackMonths, 1)}
-              unit={result.onboardingPaybackMonths === null ? undefined : "months"}
               provenance="SIMULATED"
+              {...(result.onboardingPaybackMonths !== null ? { unit: "months" } : {})}
             />
             <KpiCard
               label="Household net / year"
