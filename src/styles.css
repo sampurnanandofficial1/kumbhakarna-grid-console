@@ -99,3 +99,8 @@ html,body{max-width:100%;overflow-x:clip}
 input[type=checkbox]{width:24px;height:24px;min-width:24px;min-height:24px;accent-color:#007A33;vertical-align:middle}
 .check-inline,.strategy-select label{min-height:24px;align-items:center}
 .disclosure summary{min-height:24px;display:flex;align-items:center}
+
+/* Catch small muted text and chart tick labels consistently across modules. */
+small:not(.prov),.muted,[class*="note"],.kpi-top,.field,.page-header p,.section-heading p,.panel-head p,.footer,.team-card span,.source-list small{color:#5E6B63!important}
+small:not(.prov){font-size:11px}
+svg text{fill:#5E6B63}
