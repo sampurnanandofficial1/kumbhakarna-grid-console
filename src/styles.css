@@ -124,3 +124,12 @@ input[type=checkbox]{width:24px;height:24px;min-width:24px;min-height:24px;accen
 small:not(.prov),.muted,[class*="note"],.kpi-top,.field,.page-header p,.section-heading p,.panel-head p,.footer,.team-card span,.source-list small{color:#5E6B63!important}
 small:not(.prov){font-size:11px}
 svg text{fill:#5E6B63}
+
+
+/* Contrast remediation for illustrative hero, household mock-up, DISCOM legend and Method. */
+.visual-battery span,.visual-bottom,.visual-bottom span,.legend-row,
+.phone-screen :is(p,span,small,label,strong,b,div),
+.method-intro :is(p,span,small),.method-stat :is(span,small),
+.method-grid :is(p,span,small,li),.claim-column :is(p,span,small){
+  color:#46564d!important;
+}
