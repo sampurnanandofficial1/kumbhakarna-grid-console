@@ -58,7 +58,7 @@ export const ECONOMICS_DEFAULT: EconomicsInput = {
 };
 export function calculateEconomics(i: EconomicsInput) {
   const firmKW = i.firmKVA * 0.9,
-    feePerFirmKWyr = firmKW ? i.fee / firmKW : 0,
+    feePerFirmKWyr = firmKW > 0 ? i.fee / firmKW : null,
     feePerEnrolledHome = i.enrolledHomes ? i.fee / i.enrolledHomes : 0;
   const drHomes = i.enrolledHomes,
     srHomes = Math.round(i.srShare * i.inverterHomes),
@@ -68,19 +68,29 @@ export function calculateEconomics(i: EconomicsInput) {
     mv = i.mvCost,
     contribution = i.fee - credits - cloud - mv;
   const onboardingPaybackMonths =
-    contribution > 0 ? i.onboardingCost / (contribution / 12) : Infinity;
+    contribution > 0 ? i.onboardingCost / (contribution / 12) : null;
   const creditPerHome = drHomes ? credits / drHomes : 0,
     wear = ((i.eventsPerYear * i.kWhPerEvent) / i.batteryKWh / i.cycleLifeFEC) * i.batteryPrice,
     householdNet = creditPerHome - wear;
-  const deferralYears = Math.log(1 + i.firmKVA / i.dtPeakKVA) / Math.log(1 + i.loadGrowth);
-  const deferralPV = i.augmentationCost * (1 - Math.pow(1 + i.discountRate, -deferralYears));
+  const deferralYears =
+    i.firmKVA > 0 && i.dtPeakKVA > 0 && i.loadGrowth > 0
+      ? Math.log(1 + i.firmKVA / i.dtPeakKVA) / Math.log(1 + i.loadGrowth)
+      : null;
+  const deferralPV =
+    deferralYears !== null
+      ? i.augmentationCost * (1 - Math.pow(1 + i.discountRate, -deferralYears))
+      : null;
   const reTripValue = i.restorationsPerYear * i.reTripShare * i.avoidedShare * i.costPerReTrip;
   const scarcityValue = i.eventsPerYear * i.eventHours * firmKW * (i.scarcityPrice - i.normalPrice);
-  const valueDuring = deferralPV / deferralYears + reTripValue + scarcityValue,
+  const annualisedDeferralValue =
+    deferralPV !== null && deferralYears !== null && deferralYears > 0
+      ? deferralPV / deferralYears
+      : 0;
+  const valueDuring = annualisedDeferralValue + reTripValue + scarcityValue,
     valueAfter = reTripValue + scarcityValue;
-  const feeShareOfValue = valueDuring ? i.fee / valueDuring : 0,
+  const feeShareOfValue = valueDuring > 0 ? i.fee / valueDuring : null,
     energyPerDTyr = firmKW * i.eventHours * i.eventsPerYear,
-    feePerKWh = energyPerDTyr ? i.fee / energyPerDTyr : 0;
+    feePerKWh = energyPerDTyr > 0 ? i.fee / energyPerDTyr : null;
   return {
     firmKW,
     feePerFirmKWyr,

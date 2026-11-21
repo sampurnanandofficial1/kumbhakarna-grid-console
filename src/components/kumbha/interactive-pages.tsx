@@ -2248,6 +2248,8 @@ function EconomicsPage() {
             <Field label="Firm P90 kVA">
               <input
                 type="number"
+                min="0.1"
+                step="0.1"
                 value={input.firmKVA}
                 onChange={(e) => setInput({ ...input, firmKVA: Number(e.target.value) })}
               />
@@ -2270,7 +2272,7 @@ function EconomicsPage() {
               <input
                 type="number"
                 min="0"
-                max="1"
+                max="0.9"
                 step=".05"
                 value={input.creditShare}
                 onChange={(e) => setInput({ ...input, creditShare: Number(e.target.value) })}
@@ -2315,6 +2317,7 @@ function EconomicsPage() {
             <Field label="Load growth">
               <input
                 type="number"
+                min="0.001"
                 step=".001"
                 value={input.loadGrowth}
                 onChange={(e) => setInput({ ...input, loadGrowth: Number(e.target.value) })}
@@ -2359,8 +2362,8 @@ function EconomicsPage() {
             />
             <KpiCard
               label="Onboarding payback"
-              value={fmt(result.onboardingPaybackMonths, 1)}
-              unit="months"
+              value={result.onboardingPaybackMonths === null ? "Not reached" : fmt(result.onboardingPaybackMonths, 1)}
+              unit={result.onboardingPaybackMonths === null ? undefined : "months"}
               provenance="SIMULATED"
             />
             <KpiCard
@@ -2370,9 +2373,9 @@ function EconomicsPage() {
             />
             <KpiCard
               label="Deferral PV"
-              value={money(result.deferralPV)}
+              value={result.deferralPV === null ? "—" : money(result.deferralPV)}
               provenance="SIMULATED"
-              detail={fmt(result.deferralYears, 2) + " years of deferral"}
+              detail={result.deferralYears === null ? "—" : fmt(result.deferralYears, 2) + " years of deferral"}
             />
           </div>
           <ChartCard
