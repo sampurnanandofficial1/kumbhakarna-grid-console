@@ -294,24 +294,33 @@ function Overview() {
         <div className="team-grid">
           {team.members.map((m) => (
             <div className="team-card" key={m.name}>
-              {m.name === "Sampurn Anand" || m.name === "Zia Ur Rahman" ? (
-                <img
-                  className="team-avatar team-photo"
-                  src={m.name === "Sampurn Anand" ? "/sampurn-anand.webp" : "/zia-ur-rahman.webp"}
-                  alt={m.name}
-                  width={52}
-                  height={52}
-                  loading="lazy"
-                />
-              ) : (
-                <div className="team-avatar">
-                  {m.name
-                    .split(" ")
-                    .map((x) => x[0])
-                    .join("")
-                    .slice(0, 2)}
-                </div>
-              )}
+              {(() => {
+                const photoByMember: Record<string, string> = {
+                  "Sampurn Anand": "/sampurn-anand.jpg",
+                  "Mayank Kumar": "/mayank-kumar-profile.jpg",
+                  "Zia Ur Rahman": "/zia-ur-rahman.webp",
+                  "Keren Megha Tudu": "/keren-megha-tudu.jpg",
+                };
+                const photo = photoByMember[m.name];
+                return photo ? (
+                  <img
+                    className="team-avatar team-photo"
+                    src={photo}
+                    alt={m.name}
+                    width={52}
+                    height={52}
+                    loading="lazy"
+                  />
+                ) : (
+                  <div className="team-avatar">
+                    {m.name
+                      .split(" ")
+                      .map((x) => x[0])
+                      .join("")
+                      .slice(0, 2)}
+                  </div>
+                );
+              })()}
               <b>{m.name}</b>
               {m.lines.map((l) => (
                 <span key={l}>{l}</span>
