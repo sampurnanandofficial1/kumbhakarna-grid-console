@@ -110,3 +110,9 @@ Reference: [Schneider Electric Brand Guidelines, November 2017, pp. 35–39](htt
 - The inline Open-Meteo attribution link is small inline text.
 - The "Edit with Lovable" badge in hosted previews can sit over the guided-demo Finish button. It is a platform overlay, not part of the app.
 - The not-found page returns HTTP 200 (client-rendered 404).
+
+### Follow-up pass (same day)
+- All six Restoration Lab tabs checked after "Run simulation" at 360px and 390px. No page overflow. The tab row scrolls sideways inside itself by design (547px of tabs in a 336px row at 360px). The Validation table scrolls inside its own container.
+- Chart keys now have top spacing on every chart (9 charts), so they no longer cover x-axis titles such as "Minutes after restoration".
+- Guided demo at 360px and 390px: bottom sheet is full width, Finish is 42px tall and fully on screen, and Finish closes the dialog.
+- Vitest: 26/26 passed. Build OK. Full-project `bun run lint` did not finish within 5 minutes in the sandbox, so it is not verified here and should be run in CI.

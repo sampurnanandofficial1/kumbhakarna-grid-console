@@ -538,7 +538,7 @@ function RestorationLab() {
                           label={{ value: "Loading (%)", angle: -90, position: "insideLeft" }}
                         />
                         <Tooltip />
-                        <Legend />
+                        <Legend wrapperStyle={{ paddingTop: 14 }} />
                         <ReferenceLine y={100} stroke="#8C9C93" label="100%" />
                         <ReferenceLine
                           y={120}
@@ -584,7 +584,7 @@ function RestorationLab() {
                           <XAxis dataKey="minute" tickFormatter={(value) => value + " min"} />
                           <YAxis tickFormatter={(value) => value + " kVA"} />
                           <Tooltip />
-                          <Legend />
+                          <Legend wrapperStyle={{ paddingTop: 14 }} />
                           {(
                             [
                               ["basic", "#8C9C93", "Basic loads"],
@@ -636,7 +636,7 @@ function RestorationLab() {
                           <XAxis dataKey="minute" />
                           <YAxis />
                           <Tooltip />
-                          <Legend />
+                          <Legend wrapperStyle={{ paddingTop: 14 }} />
                           <ReferenceLine
                             y={98}
                             stroke="#C8423F"
@@ -704,7 +704,7 @@ function RestorationLab() {
                           <XAxis dataKey="strategy" />
                           <YAxis domain={[0, 100]} unit="%" />
                           <Tooltip />
-                          <Legend />
+                          <Legend wrapperStyle={{ paddingTop: 14 }} />
                           <Bar dataKey="plus60" name="+60 min" fill="#3DCD58" />
                           <Bar dataKey="plus120" name="+120 min" fill="#005C30" />
                         </BarChart>
@@ -2158,7 +2158,7 @@ function ConsolePage() {
                     <YAxis yAxisId="left" />
                     <YAxis yAxisId="right" orientation="right" />
                     <Tooltip />
-                    <Legend />
+                    <Legend wrapperStyle={{ paddingTop: 14 }} />
                     <Area
                       yAxisId="left"
                       dataKey="ghi"
@@ -2400,7 +2400,7 @@ function EconomicsPage() {
                 <XAxis dataKey="name" />
                 <YAxis />
                 <Tooltip formatter={(v) => money(Number(v))} />
-                <Legend />
+                <Legend wrapperStyle={{ paddingTop: 14 }} />
                 <Bar dataKey="during" name="Value during deferral" fill="#005C30" />
                 <Bar dataKey="after" name="Value after deferral" fill="#3DCD58" />
                 <Bar dataKey="fee" name="Annual fee" fill="#2F7FB5" />
@@ -2487,7 +2487,7 @@ function EconomicsPage() {
                 <XAxis dataKey="year" />
                 <YAxis />
                 <Tooltip />
-                <Legend />
+                <Legend wrapperStyle={{ paddingTop: 14 }} />
                 <Line dataKey="base" name="Base" stroke="#005C30" />
                 <Line dataKey="upside" name="Upside" stroke="#009E4D" />
                 <Line dataKey="conservative" name="Conservative" stroke="#8C9C93" />

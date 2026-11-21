@@ -248,7 +248,7 @@ function Overview() {
                   labelFormatter={(v) => v + " min"}
                   formatter={(v) => Number(v).toFixed(2) + "%"}
                 />
-                <Legend />
+                <Legend wrapperStyle={{ paddingTop: 14 }} />
                 <ReferenceLine y={100} stroke="#8C9C93" strokeDasharray="4 4" label="100%" />
                 <ReferenceLine y={120} stroke="#C8423F" strokeDasharray="4 4" label="120%" />
                 <Line
