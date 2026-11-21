@@ -15,16 +15,18 @@ import { AppShell } from "../components/kumbha/ui";
 
 function NotFoundComponent() {
   return (
-    <main className="page-container">
-      <section className="not-found-card panel">
-        <div className="eyebrow">404 · ROUTE NOT FOUND</div>
-        <h1>Page not found</h1>
-        <p>The route does not exist. Return to the Overview to continue exploring the console.</p>
-        <Link className="btn btn-primary" to="/">
-          Back to Overview
-        </Link>
-      </section>
-    </main>
+    <AppShell>
+      <main className="page-container">
+        <section className="not-found-card panel">
+          <div className="eyebrow">404 · ROUTE NOT FOUND</div>
+          <h1>Page not found</h1>
+          <p>The route does not exist. Return to the Overview to continue exploring the console.</p>
+          <Link className="btn btn-primary" to="/">
+            Back to Overview
+          </Link>
+        </section>
+      </main>
+    </AppShell>
   );
 }
 function ErrorComponent({ error, reset }: ErrorComponentProps) {

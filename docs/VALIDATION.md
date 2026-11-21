@@ -80,3 +80,11 @@ The previous output applied an enrolment multiplier even though the simulated pa
 - Overview chart: mean loading at 5-minute intervals from `NO_CONTROL` and `SMART_DT_AWARE`; the committed data is checked against a fresh engine run by `overview-profile.test.ts`.
 
 No restoration or flex model values were changed to produce this documentation.
+
+## Typography and responsive implementation
+
+The November 2017 Schneider Electric Brand Guidelines specify **Nunito** for digital applications and advertisements (page 39), with Arial as a substitute typeface in the wider typography system. The guide directs employees and agencies to the controlled Brand Book 2.0 portals for current brand assets. This prototype therefore uses a local/system-first `Nunito, Arial, sans-serif` stack and makes no third-party font request; it does not bundle a proprietary desktop font or fetch a font from a CDN. The brand guide is a November 2017 edition, so the current controlled brand portal remains the authority for any later revisions.
+
+Responsive guardrails added: grid/flex content children are allowed to shrink, visual media are constrained to their containers, and the not-found card and guided-demo panel use narrow-screen padding rules. These are code-level safeguards, not a substitute for real-device/browser validation.
+
+Reference: [Schneider Electric Brand Guidelines, November 2017, pp. 35–39](https://www.eventservice.kr/2018/_guide/SE_Brand_Guidelines.pdf) (the document identifies itself as confidential Schneider Electric material and points to the controlled Brand Book 2.0 portals for access).
