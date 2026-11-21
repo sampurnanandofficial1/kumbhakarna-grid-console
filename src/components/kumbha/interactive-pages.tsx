@@ -1134,7 +1134,11 @@ function FlexPage() {
             <Select
               value={input.enrolment}
               onChange={(v) => setInput({ ...input, enrolment: Number(v) })}
-              options={[0.25, 0.4, 0.6]}
+              options={[
+                { value: 0.25, label: "25%" },
+                { value: 0.4, label: "40%" },
+                { value: 0.6, label: "60%" },
+              ]}
             />
           </Field>
           <Field label="Duration">
@@ -1328,7 +1332,7 @@ function FlexPage() {
                         ticks={Array.from({ length: 10 }, (_, i) => i * 10)}
                         interval={0}
                         minTickGap={0}
-                        tick={{ fontSize: 8 }}
+                        tick={{ fontSize: 11 }}
                         tickMargin={4}
                         label={{
                           value: "Minutes after event end",
@@ -1339,7 +1343,7 @@ function FlexPage() {
                       />
                       <YAxis
                         width={82}
-                        tick={{ fontSize: 9 }}
+                        tick={{ fontSize: 11 }}
                         tickFormatter={(value: number) => String(value.toFixed(1)) + " kVA"}
                       />
                       <Tooltip formatter={(value) => String(Number(value).toFixed(2)) + " kVA"} />
