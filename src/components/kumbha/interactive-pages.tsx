@@ -538,7 +538,7 @@ function RestorationLab() {
                           label={{ value: "Loading (%)", angle: -90, position: "insideLeft" }}
                         />
                         <Tooltip />
-                        <Legend wrapperStyle={{ paddingTop: 14 }} />
+                        <Legend />
                         <ReferenceLine y={100} stroke="#8C9C93" label="100%" />
                         <ReferenceLine
                           y={120}
@@ -584,7 +584,7 @@ function RestorationLab() {
                           <XAxis dataKey="minute" tickFormatter={(value) => value + " min"} />
                           <YAxis tickFormatter={(value) => value + " kVA"} />
                           <Tooltip />
-                          <Legend wrapperStyle={{ paddingTop: 14 }} />
+                          <Legend />
                           {(
                             [
                               ["basic", "#8C9C93", "Basic loads"],
@@ -636,7 +636,7 @@ function RestorationLab() {
                           <XAxis dataKey="minute" />
                           <YAxis />
                           <Tooltip />
-                          <Legend wrapperStyle={{ paddingTop: 14 }} />
+                          <Legend />
                           <ReferenceLine
                             y={98}
                             stroke="#C8423F"
@@ -704,7 +704,7 @@ function RestorationLab() {
                           <XAxis dataKey="strategy" />
                           <YAxis domain={[0, 100]} unit="%" />
                           <Tooltip />
-                          <Legend wrapperStyle={{ paddingTop: 14 }} />
+                          <Legend />
                           <Bar dataKey="plus60" name="+60 min" fill="#3DCD58" />
                           <Bar dataKey="plus120" name="+120 min" fill="#005C30" />
                         </BarChart>
@@ -1307,48 +1307,53 @@ function FlexPage() {
             title="Rebound after event release"
             subtitle="18:45 event end · 50 event model average"
           >
-            <ChartCard
-              title="Added charger demand after release"
-              subtitle="kVA above no-event baseline"
-              provenance="SIMULATED"
-              summary="No synchronised return to grid and no synchronised recharge, ever. Deferred recharge is scheduled into a solar or off-peak window unless post-event SOC is below 75%."
-            >
-              <ClientOnly>
-                <ResponsiveContainer width="100%" height={260}>
-                  <LineChart data={result.rebound.series}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                    <XAxis
-                      type="number"
-                      dataKey="minute"
-                      domain={[0, 90]}
-                      ticks={Array.from({ length: 10 }, (_, i) => i * 10)}
-                      interval={0}
-                      tick={{ fontSize: 10 }}
-                      label={{
-                        value: "Minutes after event end",
-                        position: "insideBottom",
-                        offset: -4,
-                      }}
-                    />
-                    <YAxis
-                      width={82}
-                      tick={{ fontSize: 10 }}
-                      tickFormatter={(value: number) => String(value.toFixed(1)) + " kVA"}
-                    />
-                    <Tooltip formatter={(value) => String(Number(value).toFixed(2)) + " kVA"} />
-                    <Legend wrapperStyle={{ paddingTop: 14 }} />
-                    <Line dataKey="naive" name="Naive" stroke="#C8423F" dot={false} />
-                    <Line dataKey="half" name="Staggered half" stroke="#E39B1B" dot={false} />
-                    <Line
-                      dataKey="deferred"
-                      name="Staggered deferred"
-                      stroke="#005C30"
-                      dot={false}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </ClientOnly>
-            </ChartCard>
+            <div className="rebound-chart">
+              <ChartCard
+                title="Added charger demand after release"
+                subtitle="kVA above no-event baseline"
+                provenance="SIMULATED"
+                summary="No synchronised return to grid and no synchronised recharge, ever. Deferred recharge is scheduled into a solar or off-peak window unless post-event SOC is below 75%."
+              >
+                <ClientOnly>
+                  <ResponsiveContainer width="100%" height={280}>
+                    <LineChart data={result.rebound.series} margin={{ top: 8, right: 8, bottom: 8, left: 4 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                      <XAxis
+                        type="number"
+                        dataKey="minute"
+                        domain={[0, 90]}
+                        ticks={Array.from({ length: 10 }, (_, i) => i * 10)}
+                        interval={0}
+                        minTickGap={0}
+                        tick={{ fontSize: 8 }}
+                        tickMargin={4}
+                        label={{
+                          value: "Minutes after event end",
+                          position: "insideBottom",
+                          offset: -4,
+                          fontSize: 9,
+                        }}
+                      />
+                      <YAxis
+                        width={82}
+                        tick={{ fontSize: 9 }}
+                        tickFormatter={(value: number) => String(value.toFixed(1)) + " kVA"}
+                      />
+                      <Tooltip formatter={(value) => String(Number(value).toFixed(2)) + " kVA"} />
+                      <Legend height={24} iconSize={8} wrapperStyle={{ fontSize: 9 }} />
+                      <Line dataKey="naive" name="Naive" stroke="#C8423F" dot={false} />
+                      <Line dataKey="half" name="Staggered half" stroke="#E39B1B" dot={false} />
+                      <Line
+                        dataKey="deferred"
+                        name="Staggered deferred"
+                        stroke="#005C30"
+                        dot={false}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </ClientOnly>
+              </ChartCard>
+            </div>
             <div className="kpi-grid kpi-grid-3">
               <KpiCard
                 label="Naive rebound"
@@ -2158,7 +2163,7 @@ function ConsolePage() {
                     <YAxis yAxisId="left" />
                     <YAxis yAxisId="right" orientation="right" />
                     <Tooltip />
-                    <Legend wrapperStyle={{ paddingTop: 14 }} />
+                    <Legend />
                     <Area
                       yAxisId="left"
                       dataKey="ghi"
@@ -2400,7 +2405,7 @@ function EconomicsPage() {
                 <XAxis dataKey="name" />
                 <YAxis />
                 <Tooltip formatter={(v) => money(Number(v))} />
-                <Legend wrapperStyle={{ paddingTop: 14 }} />
+                <Legend />
                 <Bar dataKey="during" name="Value during deferral" fill="#005C30" />
                 <Bar dataKey="after" name="Value after deferral" fill="#3DCD58" />
                 <Bar dataKey="fee" name="Annual fee" fill="#2F7FB5" />
@@ -2487,7 +2492,7 @@ function EconomicsPage() {
                 <XAxis dataKey="year" />
                 <YAxis />
                 <Tooltip />
-                <Legend wrapperStyle={{ paddingTop: 14 }} />
+                <Legend />
                 <Line dataKey="base" name="Base" stroke="#005C30" />
                 <Line dataKey="upside" name="Upside" stroke="#009E4D" />
                 <Line dataKey="conservative" name="Conservative" stroke="#8C9C93" />

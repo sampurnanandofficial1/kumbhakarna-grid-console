@@ -35,7 +35,7 @@
 
 /* Guided demo stepper */
 .tour-overlay{display:flex;justify-content:flex-end;align-items:stretch;padding:0}.tour-stepper{width:min(460px,100%);height:100%;max-height:100dvh;overflow:auto;border-radius:18px 0 0 18px;padding:32px;display:flex;flex-direction:column;gap:14px}.tour-stepper h2{font-size:27px;margin:8px 44px 2px 0}.tour-narration p{font-size:13px;line-height:1.65;color:#5f7065;margin:9px 0}.tour-progress{height:6px;border-radius:99px;background:#e9f0eb;overflow:hidden;margin-top:10px}.tour-progress span{display:block;height:100%;background:#009E4D;border-radius:99px;transition:width .2s}.tour-step-count{font-size:11px;color:#738178;font-weight:700}.tour-take{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:10px}.tour-controls{display:flex;justify-content:space-between;gap:10px;margin-top:auto;padding-top:20px;border-top:1px solid var(--border)}.tour-controls button{min-width:100px}
-@media(max-width:680px){.tour-overlay{align-items:flex-end;justify-content:center;padding:0}.tour-stepper{width:100%;height:auto;max-height:84dvh;border-radius:18px 18px 0 0;padding:26px 20px calc(20px + env(safe-area-inset-bottom));gap:10px}.tour-stepper h2{font-size:23px}.tour-controls button{flex:1}}
+@media(max-width:680px){.tour-overlay{align-items:flex-end;justify-content:center;padding:0}.tour-stepper{width:100%;height:auto;max-height:84dvh;border-radius:18px 18px 0 0;padding:26px 20px calc(92px + env(safe-area-inset-bottom));gap:10px}.tour-stepper h2{font-size:23px}.tour-controls button{flex:1}}
 
 /* Router active state */
 .desktop-nav a[aria-current="page"]{color:var(--brand-deep);font-weight:800;position:relative}.desktop-nav a[aria-current="page"]:after{content:"";position:absolute;left:9px;right:9px;bottom:1px;height:3px;border-radius:99px;background:var(--brand-green)}.mobile-nav a[aria-current="page"]{background:#eaf6ed;color:var(--brand-deep);font-weight:800}
@@ -48,7 +48,14 @@
 
 /* Schneider Electric digital-app typography and narrow-viewport guardrails.
    Nunito is specified for digital apps in the Nov 2017 Schneider Electric Brand Guidelines.
-   The font is not fetched from a CDN; use the locally installed face when available, then Arial. */
+   Self-hosted Nunito variable font; no runtime third-party font request. */
+@font-face{
+  font-family:"Nunito";
+  src:url("/fonts/Nunito-Variable.ttf") format("truetype");
+  font-style:normal;
+  font-weight:200 1000;
+  font-display:swap;
+}
 :root{--font-brand:"Nunito",Arial,sans-serif}
 body{font-family:var(--font-brand)}
 h1,h2,h3,h4,h5,h6{font-family:var(--font-brand);font-weight:600}
@@ -68,16 +75,5 @@ img,svg,canvas{max-width:100%}
   .tour-stepper{padding-left:16px;padding-right:16px}
 }
 
-/* Mobile QA pass (360–390px): charts size to their own height, readable legends, 44px-class touch targets */
-.chart-wrap{height:auto;min-height:0}
-@media(max-width:620px){
-  .chart-wrap{height:auto}
-  .recharts-default-legend{font-size:11px;line-height:1.3}
-  .recharts-legend-item{margin-right:6px!important}
-  .recharts-label{font-size:11px}
-  .disclosure summary{min-height:44px;display:flex;align-items:center;cursor:pointer}
-  input[type="range"]{min-height:32px}
-  input[type="checkbox"],input[type="radio"]{width:20px;height:20px}
-  .footer a{display:inline-flex;align-items:center;min-height:44px}
-  .tab-row button{min-height:40px}
-}
+/* Rebound chart: reserve space for the legend and summary on narrow screens. */
+.rebound-chart .chart-wrap{height:300px}
