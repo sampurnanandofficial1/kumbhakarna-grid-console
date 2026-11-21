@@ -1322,6 +1322,8 @@ function FlexPage() {
                       dataKey="minute"
                       domain={[0, 90]}
                       ticks={Array.from({ length: 10 }, (_, i) => i * 10)}
+                      interval={0}
+                      tick={{ fontSize: 10 }}
                       label={{
                         value: "Minutes after event end",
                         position: "insideBottom",
@@ -1334,7 +1336,7 @@ function FlexPage() {
                       tickFormatter={(value: number) => String(value.toFixed(1)) + " kVA"}
                     />
                     <Tooltip formatter={(value) => String(Number(value).toFixed(2)) + " kVA"} />
-                    <Legend />
+                    <Legend wrapperStyle={{ paddingTop: 14 }} />
                     <Line dataKey="naive" name="Naive" stroke="#C8423F" dot={false} />
                     <Line dataKey="half" name="Staggered half" stroke="#E39B1B" dot={false} />
                     <Line

@@ -88,3 +88,25 @@ The November 2017 Schneider Electric Brand Guidelines specify **Nunito** for dig
 Responsive guardrails added: grid/flex content children are allowed to shrink, visual media are constrained to their containers, and the not-found card and guided-demo panel use narrow-screen padding rules. These are code-level safeguards, not a substitute for real-device/browser validation.
 
 Reference: [Schneider Electric Brand Guidelines, November 2017, pp. 35–39](https://www.eventservice.kr/2018/_guide/SE_Brand_Guidelines.pdf) (the document identifies itself as confidential Schneider Electric material and points to the controlled Brand Book 2.0 portals for access).
+
+## Mobile responsive QA (360px and 390px)
+
+**Provenance: manual QA in headless Chromium (Playwright), local dev server, 2026-11-21.** Not a real-device test.
+
+**Tested:** all 8 routes (`/`, `/restoration`, `/scenarios`, `/flex`, `/household`, `/console`, `/economics`, `/method`) plus a nonexistent path, at 360×1800 and 390×1800. On each page the main run action was triggered where present (Run 200 events, Send synthetic request). Automated checks per page: document scroll width equals viewport width; no element extends past the viewport outside an intentional scroll container; no clipped text boxes; chart legends and summaries do not overlap; interactive controls at least 24×24px. Not-found page: header, prototype banner, footer and Back to Overview. Guided demo: Back disabled on step 1, Next through step 8, Finish closes (desktop 1280px and 360px bottom sheet).
+
+**Fixed in this pass:**
+- On phones, `.chart-wrap` was fixed at 220px while charts render at 230–310px, so taller charts overlapped their summary text. Chart wrappers now size to the chart.
+- Flex rebound chart: at 360px, the x-axis dropped ticks (0, 10, 30, 50, 70, 90). It now shows all ten 0–90 minute ticks at 10-minute steps, and the legend no longer covers the axis title.
+- Touch targets: "What this shows" disclosures, the footer link and tab buttons now meet the minimum height. Range sliders and checkboxes are larger.
+- Legend and axis-title type is smaller on phones, so legends wrap less.
+
+**Result after fixes:** no horizontal overflow, clipped text or chart/summary overlap on any page at either width. Vitest: 8 files, 26 tests passed. Build: OK.
+
+**Limitations / still manual:**
+- Not tested on real iOS or Android devices: safe-area insets, on-screen keyboard, momentum scrolling and real touch accuracy.
+- Nunito is declared but not loaded: no font file is bundled, and remote font requests are outside the network rule. Text renders in Arial.
+- 20×20px checkboxes are below 44px. Their labels are tappable, so the effective target is larger.
+- The inline Open-Meteo attribution link is small inline text.
+- The "Edit with Lovable" badge in hosted previews can sit over the guided-demo Finish button. It is a platform overlay, not part of the app.
+- The not-found page returns HTTP 200 (client-rendered 404).
