@@ -75,7 +75,11 @@ describe("DISCOM event dispatch", () => {
       });
       if (event.holdoutHomes > 1 && event.participants > 1) {
         observed++;
-        if (Math.abs(event.holdoutEstimateKVA - event.deliveredTrueKVA) <= event.holdoutCI) {
+        if (
+          event.holdoutEstimateKVA !== null &&
+          event.holdoutCI !== null &&
+          Math.abs(event.holdoutEstimateKVA - event.deliveredTrueKVA) <= event.holdoutCI
+        ) {
           covered++;
         }
       }
@@ -84,6 +88,34 @@ describe("DISCOM event dispatch", () => {
     const coverage = covered / observed;
     expect(coverage).toBeGreaterThanOrEqual(0.9);
     expect(coverage).toBeLessThanOrEqual(0.99);
+  });
+
+  it("uses a fixed-size seeded holdout and keeps DT-0412 intervals bounded across 300 sequences", () => {
+    let covered = 0;
+    for (let sequence = 0; sequence < 300; sequence++) {
+      const event = runConsoleEvent({
+        dt, requestedKVA: 15, time: "18:45", durationMin: 30, holdoutPct: 10,
+        reserveFloor: 0.6, personaReservePercent: 65, p90OutageHours: 2,
+        criticalBackup: false, optOutNext: false, endStrategy: "Staggered deferred", sequence,
+      });
+      expect(event.holdoutStatus).toBe("available");
+      expect(event.holdoutHomes).toBeGreaterThanOrEqual(5);
+      expect(event.rows.some((row) => row.home_id === "H-0412-017" && row.group === "holdout")).toBe(false);
+      expect(event.holdoutCI).not.toBeNull();
+      expect(event.holdoutCI!).toBeLessThanOrEqual(20);
+      if (Math.abs(event.holdoutEstimateKVA! - event.deliveredTrueKVA) <= event.holdoutCI!) covered++;
+    }
+    expect(covered / 300).toBeGreaterThanOrEqual(0.9);
+  });
+
+  it("keeps zero-percent holdout distinct from a too-small sample", () => {
+    const noHoldout = runConsoleEvent({
+      dt, requestedKVA: 15, time: "18:45", durationMin: 30, holdoutPct: 0,
+      reserveFloor: 0.6, p90OutageHours: 2, criticalBackup: false, optOutNext: false,
+      endStrategy: "Staggered deferred", sequence: 0,
+    });
+    expect(noHoldout.holdoutStatus).toBe("none");
+    expect(noHoldout.holdoutHomes).toBe(0);
   });
 
   it("caps dispatch near the requested amount and preserves the full persona ID in CSV", () => {

@@ -85,7 +85,27 @@ img,svg,canvas{max-width:100%}
 @media(max-width:380px){.brand-logo{width:78px}.brand-product strong{font-size:11px}.brand-product span{font-size:8px}.brand{gap:6px}}
 
 /* Final QA: keep the full desktop header within tablet/laptop viewports. */
-@media(max-width:1300px){.desktop-nav{display:none}.mobile-menu{display:grid}.desktop-reset{display:none}.mobile-nav{display:grid;position:sticky;top:72px;z-index:29;background:#fff;border-bottom:1px solid var(--border);padding:8px 18px;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px}.mobile-nav a{display:flex;align-items:center;justify-content:space-between;padding:8px;border-radius:7px;font-size:12px}}
+@media(min-width:1200px) and (max-width:1365px){
+  .topbar{gap:10px;padding-left:24px;padding-right:24px}
+  .brand{min-width:178px;gap:7px}
+  .brand-logo{width:98px;max-height:34px}
+  .brand-divider{height:28px}
+  .brand-product span{display:none}
+  .brand-product strong{font-size:13px}
+  .desktop-nav{gap:1px}
+  .desktop-nav a{font-size:10.5px;padding:7px 5px}
+  .top-actions{gap:3px}
+  .top-actions>.btn{font-size:11px;padding:8px 9px;gap:5px}
+  .desktop-reset{padding:6px}
+}
+@media(max-width:1199px){
+  .desktop-nav{display:none}
+  .mobile-menu{display:grid}
+  .desktop-reset{display:none}
+  .mobile-nav{display:grid;position:sticky;top:72px;z-index:29;background:#fff;border-bottom:1px solid var(--border);padding:8px 18px;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px}
+  .mobile-nav a{display:flex;align-items:center;justify-content:space-between;padding:8px;border-radius:7px;font-size:12px}
+  .mobile-nav-reset{display:flex;align-items:center;gap:8px;padding:8px;border:1px solid var(--border);border-radius:7px;background:#fff;color:var(--foreground);font-size:12px;font-weight:700;text-align:left}
+}
 .top-actions{flex:none}.top-actions>.btn{white-space:nowrap;flex:none}.brand{flex:none}
 html,body{max-width:100%;overflow-x:clip}
 
@@ -104,3 +124,12 @@ input[type=checkbox]{width:24px;height:24px;min-width:24px;min-height:24px;accen
 small:not(.prov),.muted,[class*="note"],.kpi-top,.field,.page-header p,.section-heading p,.panel-head p,.footer,.team-card span,.source-list small{color:#5E6B63!important}
 small:not(.prov){font-size:11px}
 svg text{fill:#5E6B63}
+
+
+/* Contrast remediation for illustrative hero, household mock-up, DISCOM legend and Method. */
+.visual-battery span,.visual-bottom,.visual-bottom span,.legend-row,
+.phone-screen :is(p,span,small,label,strong,b,div),
+.method-intro :is(p,span,small),.method-stat :is(span,small),
+.method-grid :is(p,span,small,li),.claim-column :is(p,span,small){
+  color:#46564d!important;
+}
