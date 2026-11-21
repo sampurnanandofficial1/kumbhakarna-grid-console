@@ -294,13 +294,24 @@ function Overview() {
         <div className="team-grid">
           {team.members.map((m) => (
             <div className="team-card" key={m.name}>
-              <div className="team-avatar">
-                {m.name
-                  .split(" ")
-                  .map((x) => x[0])
-                  .join("")
-                  .slice(0, 2)}
-              </div>
+              {m.name === "Sampurn Anand" ? (
+                <img
+                  className="team-avatar team-photo"
+                  src="/sampurn-anand.webp"
+                  alt="Sampurn Anand"
+                  width={52}
+                  height={52}
+                  loading="lazy"
+                />
+              ) : (
+                <div className="team-avatar">
+                  {m.name
+                    .split(" ")
+                    .map((x) => x[0])
+                    .join("")
+                    .slice(0, 2)}
+                </div>
+              )}
               <b>{m.name}</b>
               {m.lines.map((l) => (
                 <span key={l}>{l}</span>
