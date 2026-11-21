@@ -130,7 +130,7 @@ Reference: [Schneider Electric Brand Guidelines, November 2017, pp. 35–39](htt
 ## Final QA pass (2026-11-21)
 - Initial axe-core baseline supplied in the task: 133 color-contrast violations.
 - Post-change axe-core: not executed in the available environment; zero violations are not claimed. Run axe-core against all eight routes before release sign-off.
-- Responsive header: desktop nav is replaced by the existing mobile menu below 1280 px; Guided demo is nowrap.
+- Responsive header: desktop nav is replaced by the existing mobile menu at widths up to 1300 px; Guided demo is nowrap.
 - Economics: undefined payback and deferral outputs are null and rendered as “Not reached” / “—”; regression tests cover non-positive contribution, zero load growth and zero firm P90.
 - Holdout: zero holdout homes displays “n/a — no holdout group”.
 - Touch targets: checkbox and disclosure summary targets are at least 24 px.
