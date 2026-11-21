@@ -1,5 +1,5 @@
-import { useEffect, useState, type ReactNode } from "react";
-import { Link } from "@tanstack/react-router";
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
+import { Link, useNavigate } from "@tanstack/react-router";
 import {
   Activity,
   BatteryCharging,
@@ -10,7 +10,7 @@ import {
   Sparkles,
   X,
 } from "lucide-react";
-import { resetDemoStore } from "../../lib/demo-store";
+import { resetDemoStore, setDemoState, useDemoStore } from "../../lib/demo-store";
 import type { Provenance } from "../../data/reference";
 
 const nav = [
@@ -157,25 +157,76 @@ export function Panel({
     </section>
   );
 }
+const GuidedDemoContext = createContext<() => void>(() => {});
+export function useGuidedDemo() { return useContext(GuidedDemoContext); }
+
+const tourSteps = [
+  { href: "/", title: "Overview", narration: ["The evening ramp can stress a distribution transformer as household demand rises together.", "Kumbhakarna combines two control loops: staggered Smart Recharge after restoration and short Battery-Switch relief on a DISCOM request."] },
+  { href: "/restoration", title: "Restoration Lab", narration: ["Reproduce the report base cell, then compare No control with transformer-aware Smart Recharge.", "Open the Validation tab to inspect model outputs against the team report and its tolerances."] },
+  { href: "/scenarios", title: "81 Scenarios", narration: ["Run all 81 combinations to stress-test the restoration strategy across operating conditions.", "It works best on intermittently stressed transformers, typically around 70–85% pre-load."] },
+  { href: "/flex", title: "Flex Events", narration: ["Firm P90 is the 10th percentile across 200 simulated events; inspect the Reserve Guard eligibility funnel.", "Compare naive recharge with staggered and deferred rebound profiles rather than assuming shifted load disappears."] },
+  { href: "/household", title: "Household App", narration: ["Move the household reserve slider and simulate an event to see Reserve Guard evaluate projected post-event SOC.", "A household opt-out always wins: the device is excluded even when other eligibility checks pass."] },
+  { href: "/console", title: "DISCOM Console", narration: ["Select DT-0412 and request 15 kVA at 18:45 for 30 minutes; inspect the verified synthetic dispatch result.", "Download the M&V CSV to review device rows, reserve checks, holdouts and metering fields."] },
+  { href: "/economics", title: "Business Case", narration: ["Compare the annual fee with contribution after household credits, cloud and measurement costs.", "Review ₹ per firm kW-year and the one-time network-deferral timing value; it is not recurring annual savings."] },
+  { href: "/method", title: "Method & Evidence", narration: ["The claim ladder separates published facts, team-model assumptions, simulated outputs and items still to validate.", "Review Gate 0 OEM confirmation, the staged pilot design and the stop rule before any field deployment."] },
+] as const;
+
 export function AppShell({ children }: { children: ReactNode }) {
   const [menu, setMenu] = useState(false);
   const [tour, setTour] = useState(false);
   const [reset, setReset] = useState(false);
-  const openTour = () => {
-    setTour(true);
-    if (typeof window !== "undefined")
-      window.dispatchEvent(new CustomEvent("kumbha:tour", { detail: { open: true } }));
+  const store = useDemoStore();
+  const panelRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const wasOpen = useRef(false);
+  const navigate = useNavigate();
+  const openTour = () => setTour(true);
+  const closeTour = () => setTour(false);
+  const goToStep = (step: number) => setDemoState({ tourStep: Math.max(0, Math.min(7, step)) });
+  const currentStep = tourSteps[store.tourStep] ?? tourSteps[0];
+  const takeMeThere = () => {
+    if (currentStep.href === "/") void navigate({ to: "/" });
+    else void navigate({ to: "/$page", params: { page: currentStep.href.slice(1) } });
   };
+  useEffect(() => {
+    if (tour) {
+      wasOpen.current = true;
+      panelRef.current?.focus();
+      const onKeyDown = (event: KeyboardEvent) => {
+        if (event.key === "Escape") { event.preventDefault(); closeTour(); }
+        if (event.key === "Tab" && panelRef.current) {
+          const focusable = panelRef.current.querySelectorAll<HTMLElement>('button:not([disabled]),a[href],[tabindex="0"]');
+          const first = focusable[0];
+          const last = focusable[focusable.length - 1];
+          if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+          else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+        }
+      };
+      document.addEventListener("keydown", onKeyDown);
+      return () => document.removeEventListener("keydown", onKeyDown);
+    }
+    if (wasOpen.current) { wasOpen.current = false; triggerRef.current?.focus(); }
+  }, [tour]);
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem("kumbha-demo-reset-toast") === "1") {
+        sessionStorage.removeItem("kumbha-demo-reset-toast");
+        setReset(true);
+        const id = window.setTimeout(() => setReset(false), 2200);
+        return () => window.clearTimeout(id);
+      }
+    } catch {}
+  }, []);
   const resetDemo = () => {
     resetDemoStore();
     try {
       localStorage.removeItem("kumbha-demo-v1");
     } catch {}
-    setReset(true);
-    window.setTimeout(() => setReset(false), 2200);
+    try { sessionStorage.setItem("kumbha-demo-reset-toast", "1"); } catch {}
     window.location.reload();
   };
   return (
+    <GuidedDemoContext.Provider value={openTour}>
     <div className="app-frame">
       <header className="topbar">
         <div className="brand">
@@ -195,7 +246,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           ))}
         </nav>
         <div className="top-actions">
-          <button className="btn btn-primary btn-small" onClick={openTour}>
+          <button ref={triggerRef} className="btn btn-primary btn-small" onClick={openTour}>
             <Sparkles size={14} /> Guided demo
           </button>
           <button
@@ -234,38 +285,24 @@ export function AppShell({ children }: { children: ReactNode }) {
         <a href="/method">Method & Evidence</a>
       </footer>
       {tour && (
-        <div className="tour-overlay" role="dialog" aria-modal="true">
-          <div className="tour-card">
-            <button
-              className="icon-btn tour-close"
-              onClick={() => setTour(false)}
-              aria-label="Close tour"
-            >
-              <X />
-            </button>
-            <div className="eyebrow">Guided demo</div>
-            <h2>Explore Kumbhakarna in 4 minutes</h2>
-            <p>
-              Follow the eight-page story: the grid problem, restoration simulation, scenario
-              robustness, household reserve protection, DISCOM dispatch, firm capacity, economics
-              and validation.
-            </p>
-            <div className="tour-links">
-              {nav.map(([href, label], i) => (
-                <a href={href} key={href} onClick={() => setTour(false)}>
-                  <span>{String(i + 1).padStart(2, "0")}</span>
-                  {label}
-                  <ChevronRight size={15} />
-                </a>
-              ))}
+        <div className="tour-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) closeTour(); }}>
+          <section className="tour-card tour-stepper" role="dialog" aria-modal="true" aria-labelledby="tour-title" aria-describedby="tour-narration" tabIndex={-1} ref={panelRef}>
+            <button className="icon-btn tour-close" onClick={closeTour} aria-label="Close guided demo"><X /></button>
+            <div className="eyebrow">Guided demo · Step {store.tourStep + 1} of 8</div>
+            <h2 id="tour-title">{currentStep.title}</h2>
+            <div id="tour-narration" className="tour-narration"><p>{currentStep.narration[0]}</p><p>{currentStep.narration[1]}</p></div>
+            <div className="tour-progress" aria-label={"Step " + (store.tourStep + 1) + " of 8"}><span style={{ width: ((store.tourStep + 1) / 8) * 100 + "%" }} /></div>
+            <div className="tour-step-count">Step {store.tourStep + 1} of 8</div>
+            <button className="btn btn-primary tour-take" onClick={takeMeThere}>Take me there <ChevronRight size={15} /></button>
+            <div className="tour-controls">
+              <button className="btn btn-secondary" onClick={() => goToStep(store.tourStep - 1)} disabled={store.tourStep === 0}>Back</button>
+              {store.tourStep < 7 ? <button className="btn btn-primary" onClick={() => goToStep(store.tourStep + 1)}>Next</button> : <button className="btn btn-primary" onClick={closeTour}>Finish</button>}
             </div>
-            <button className="btn btn-primary" onClick={() => setTour(false)}>
-              Start exploring
-            </button>
-          </div>
+          </section>
         </div>
       )}
     </div>
+    </GuidedDemoContext.Provider>
   );
 }
 export function Button({

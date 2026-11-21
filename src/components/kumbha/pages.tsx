@@ -1,4 +1,6 @@
 import { useMemo, useState } from "react";
+import { Sparkles } from "lucide-react";
+import { useGuidedDemo } from "./ui";
 import { InteractivePage } from "./interactive-pages";
 import {
   ArrowRight,
@@ -59,16 +61,7 @@ export function PageScreen({ page }: { page: "overview" | PageId }) {
   return <InteractivePage page={page} />;
 }
 function Overview() {
-  const chart = [
-    { minute: 0, control: 106, smart: 106 },
-    { minute: 15, control: 127, smart: 115 },
-    { minute: 30, control: 126, smart: 116 },
-    { minute: 60, control: 121, smart: 113 },
-    { minute: 90, control: 113, smart: 108 },
-    { minute: 120, control: 108, smart: 104 },
-    { minute: 180, control: 101, smart: 99 },
-    { minute: 240, control: 96, smart: 95 },
-  ];
+  const startGuidedDemo = useGuidedDemo();
   return (
     <main className="page-container">
       <section className="hero">
@@ -85,6 +78,9 @@ function Overview() {
             relief — without new batteries, export or compromising household backup.
           </p>
           <div className="hero-actions">
+            <button className="btn btn-primary" onClick={startGuidedDemo}>
+              <Sparkles size={16} /> Start guided demo
+            </button>
             <a className="btn btn-primary" href="/restoration">
               Open Restoration Lab <ArrowRight size={16} />
             </a>
@@ -270,7 +266,6 @@ function Overview() {
             <h2>AA Jewels</h2>
             <p>Team credits as provided in the competition submission.</p>
           </div>
-          <ProvenanceBadge kind="ILLUSTRATIVE" />
         </div>
         <div className="team-grid">
           {team.members.map((m) => (
