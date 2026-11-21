@@ -88,3 +88,40 @@ The November 2017 Schneider Electric Brand Guidelines specify **Nunito** for dig
 Responsive guardrails added: grid/flex content children are allowed to shrink, visual media are constrained to their containers, and the not-found card and guided-demo panel use narrow-screen padding rules. These are code-level safeguards, not a substitute for real-device/browser validation.
 
 Reference: [Schneider Electric Brand Guidelines, November 2017, pp. 35–39](https://www.eventservice.kr/2018/_guide/SE_Brand_Guidelines.pdf) (the document identifies itself as confidential Schneider Electric material and points to the controlled Brand Book 2.0 portals for access).
+
+## Mobile responsive QA (360px and 390px)
+
+**Provenance: manual QA in headless Chromium (Playwright), local dev server, 2026-11-21.** Not a real-device test.
+
+**Tested:** all 8 routes (`/`, `/restoration`, `/scenarios`, `/flex`, `/household`, `/console`, `/economics`, `/method`) plus a nonexistent path, at 360×1800 and 390×1800. On each page the main run action was triggered where present (Run 200 events, Send synthetic request). Automated checks per page: document scroll width equals viewport width; no element extends past the viewport outside an intentional scroll container; no clipped text boxes; chart legends and summaries do not overlap; interactive controls at least 24×24px. Not-found page: header, prototype banner, footer and Back to Overview. Guided demo: Back disabled on step 1, Next through step 8, Finish closes (desktop 1280px and 360px bottom sheet).
+
+**Fixed in this pass:**
+- On phones, `.chart-wrap` was fixed at 220px while charts render at 230–310px, so taller charts overlapped their summary text. Chart wrappers now size to the chart.
+- Flex rebound chart: at 360px, the x-axis dropped ticks (0, 10, 30, 50, 70, 90). It now shows all ten 0–90 minute ticks at 10-minute steps, and the legend no longer covers the axis title.
+- Touch targets: "What this shows" disclosures, the footer link and tab buttons now meet the minimum height. Range sliders and checkboxes are larger.
+- Legend and axis-title type is smaller on phones, so legends wrap less.
+
+**Result after fixes:** no horizontal overflow, clipped text or chart/summary overlap on any page at either width. Vitest: 8 files, 26 tests passed. Build: OK.
+
+**Limitations / still manual:**
+- Not tested on real iOS or Android devices: safe-area insets, on-screen keyboard, momentum scrolling and real touch accuracy.
+- Nunito is declared but not loaded: no font file is bundled, and remote font requests are outside the network rule. Text renders in Arial.
+- 20×20px checkboxes are below 44px. Their labels are tappable, so the effective target is larger.
+- The inline Open-Meteo attribution link is small inline text.
+- The "Edit with Lovable" badge in hosted previews can sit over the guided-demo Finish button. It is a platform overlay, not part of the app.
+- The not-found page returns HTTP 200 (client-rendered 404).
+
+### Follow-up pass (same day)
+- All six Restoration Lab tabs checked after "Run simulation" at 360px and 390px. No page overflow. The tab row scrolls sideways inside itself by design (547px of tabs in a 336px row at 360px). The Validation table scrolls inside its own container.
+- Chart keys now have top spacing on every chart (9 charts), so they no longer cover x-axis titles such as "Minutes after restoration".
+- Guided demo at 360px and 390px: bottom sheet is full width, Finish is 42px tall and fully on screen, and Finish closes the dialog.
+- Vitest: 26/26 passed. Build OK. Full-project `bun run lint` did not finish within 5 minutes in the sandbox, so it is not verified here and should be run in CI.
+
+
+## Release verification follow-up
+
+- Mobile viewport QA at 360px and 390px was performed in headless Chromium; this is emulated browser coverage, not physical iOS/Android device certification.
+- The local Lovable agent reported 26/26 Vitest tests and a successful production build. Full-project ESLint did not complete within its five-minute execution window; the GitHub Actions quality-gates workflow is the authoritative rerun for typecheck, build, formatting, lint, tests and SSR route smoke checks.
+- Nunito remains declared as the preferred digital typeface, with Arial fallback. No font asset is bundled because the project permits no additional network requests beyond the Open-Meteo forecast and no new dependencies.
+- Unknown dynamic page IDs are rendered through the client-only not-found component. The route is intentionally client-rendered per the project routing rules; HTTP status behavior is therefore not represented as a verified server-side 404.
+- Production deployment was requested from Lovable; the deployment API returned `pending`. Verify the published URL after the host completes deployment.
