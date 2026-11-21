@@ -39,3 +39,9 @@
 
 /* Router active state */
 .desktop-nav a[aria-current="page"]{color:var(--brand-deep);font-weight:800;position:relative}.desktop-nav a[aria-current="page"]:after{content:"";position:absolute;left:9px;right:9px;bottom:1px;height:3px;border-radius:99px;background:var(--brand-green)}.mobile-nav a[aria-current="page"]{background:#eaf6ed;color:var(--brand-deep);font-weight:800}
+
+/* Final review nits */
+.not-found-card{max-width:640px;margin:36px auto;padding:36px}
+.not-found-card h1{font-size:30px;letter-spacing:-.035em;margin:10px 0}
+.not-found-card p{color:#66756c;font-size:13px;margin:0 0 20px}
+@media(min-width:901px){.tour-card.tour-stepper{padding-bottom:92px}}

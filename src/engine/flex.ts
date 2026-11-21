@@ -154,7 +154,6 @@ export function evaluateFlexHome(
 }
 export function simulateRebound(
   seed: number,
-  enrolment: number,
   durationMin: number,
   participants = 70,
 ) {
@@ -213,15 +212,15 @@ export function simulateRebound(
     }
   }
 
-  const scale = enrolment / 0.4;
-  const naive = ((sums[0] ?? 0) / 50) * scale;
-  const staggeredHalf = ((sums[1] ?? 0) / 50) * scale;
-  const deferred = ((sums[2] ?? 0) / 50) * scale;
+  // The simulated participant count already reflects enrolment; do not scale the output again.
+  const naive = (sums[0] ?? 0) / 50;
+  const staggeredHalf = (sums[1] ?? 0) / 50;
+  const deferred = (sums[2] ?? 0) / 50;
   const series = Array.from({ length: 90 }, (_, minute) => ({
     minute,
-    naive: ((profileSums[0]?.[minute] ?? 0) / 50) * scale,
-    half: ((profileSums[1]?.[minute] ?? 0) / 50) * scale,
-    deferred: ((profileSums[2]?.[minute] ?? 0) / 50) * scale,
+    naive: (profileSums[0]?.[minute] ?? 0) / 50,
+    half: (profileSums[1]?.[minute] ?? 0) / 50,
+    deferred: (profileSums[2]?.[minute] ?? 0) / 50,
   }));
 
   return {
@@ -315,7 +314,6 @@ export function runFlexEvents(input: FlexInput): FlexResult {
   ];
   const rebound = simulateRebound(
     hashSeed("flex-rebound:" + input.seed),
-    input.enrolment,
     input.durationMin,
     Math.max(20, Math.round(enrolled * 0.8)),
   );

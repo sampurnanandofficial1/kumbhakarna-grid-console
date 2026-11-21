@@ -62,15 +62,15 @@ These are synthetic capacity estimates after the engine's opt-out, communication
 
 ## Rebound by end strategy
 
-**Run:** 50 seeded rebound realisations per scenario, 30-minute prior event, same population assumptions and seed 2026. Values are mean 90-minute coincident recharge peak, scaled to the selected enrolment. Lower peak indicates less synchronised return-to-grid demand; it does not mean recharge energy has disappeared.
+**Run:** 50 seeded rebound realisations per scenario, 30-minute prior event, seed 2026. Each run simulates 80% of the enrolled participant count (minimum 20 participants); that participant count already captures enrolment, so no second enrolment multiplier is applied. Values are mean 90-minute coincident recharge peak. Lower peak indicates less synchronised return-to-grid demand; it does not mean recharge energy has disappeared.
 
-| Enrolment | Naive end (kVA) | Staggered half (kVA) | Staggered deferred (kVA) |
-|---:|---:|---:|---:|
-| 25% | 5.33 | 2.62 | 0.31 |
-| 40% | 13.49 | 6.61 | 0.77 |
-| 60% | 30.07 | 14.73 | 1.72 |
+| Enrolment | Before fix · naive (kVA) | Before fix · half (kVA) | Before fix · deferred (kVA) | Corrected · naive (kVA) | Corrected · half (kVA) | Corrected · deferred (kVA) |
+|---:|---:|---:|---:|---:|---:|---:|
+| 25% | 5.33 | 2.62 | 0.31 | 8.53 | 4.19 | 0.50 |
+| 40% | 13.49 | 6.61 | 0.77 | 13.49 | 6.61 | 0.77 |
+| 60% | 30.07 | 14.73 | 1.72 | 20.05 | 9.82 | 1.15 |
 
-Deferred recharge reduces the immediate rebound peak by moving energy later; the schedule and household reserve constraints still need operational validation.
+The previous output applied an enrolment multiplier even though the simulated participant count already changed with enrolment. The corrected output removes that second scaling; 40% is unchanged because its former multiplier was 1. Deferred recharge reduces the immediate rebound peak by moving energy later; the schedule and household reserve constraints still need operational validation.
 
 ## Reproduction
 

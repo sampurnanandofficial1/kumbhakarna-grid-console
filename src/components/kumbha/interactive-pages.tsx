@@ -37,6 +37,7 @@ import {
 import { run81Scenarios, type ScenarioCell } from "../../engine/scenarios";
 import {
   DEFAULT_FLEX,
+  runFlexEvents,
   simulateFlex,
   type FlexInput,
   type FlexResult,
@@ -1317,14 +1318,21 @@ function FlexPage() {
                   <LineChart data={result.rebound.series}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
                     <XAxis
+                      type="number"
                       dataKey="minute"
+                      domain={[0, 90]}
+                      ticks={Array.from({ length: 10 }, (_, i) => i * 10)}
                       label={{
                         value: "Minutes after event end",
                         position: "insideBottom",
                         offset: -4,
                       }}
                     />
-                    <YAxis tickFormatter={(value: number) => String(value.toFixed(1)) + " kVA"} />
+                    <YAxis
+                      width={82}
+                      tick={{ fontSize: 10 }}
+                      tickFormatter={(value: number) => String(value.toFixed(1)) + " kVA"}
+                    />
                     <Tooltip formatter={(value) => String(Number(value).toFixed(2)) + " kVA"} />
                     <Legend />
                     <Line dataKey="naive" name="Naive" stroke="#C8423F" dot={false} />
@@ -1679,13 +1687,18 @@ function ConsolePage() {
     [weatherBusy, setWeatherBusy] = useState(false),
     store = useDemoStore();
   const dt = feeder.find((x) => x.id === selected) ?? feeder[11]!;
+  const flexBaseCase = useMemo(() => runFlexEvents(DEFAULT_FLEX), []);
+  const baseCaseEnergyKWh =
+    flexBaseCase.meanAvailableHomes * flexBaseCase.meanEnergyKWh;
   useEffect(() => {
     hydrateDemoStore();
   }, []);
   const refreshSolar = useCallback(async () => {
     setWeatherBusy(true);
     try {
-      const targetEnergyKWh = event?.dispatchedEnergyKWh ?? 1.4;
+      const targetEnergyKWh = event
+        ? event.dispatchedEnergyKWh / 0.88
+        : baseCaseEnergyKWh;
       setSolar(
         await loadSolar(
           CITIES.find((c) => c.name === city) ?? CITIES[0]!,
@@ -1696,7 +1709,7 @@ function ConsolePage() {
     } finally {
       setWeatherBusy(false);
     }
-  }, [city, threshold, event?.dispatchedEnergyKWh]);
+  }, [city, threshold, event?.dispatchedEnergyKWh, baseCaseEnergyKWh]);
   useEffect(() => {
     void refreshSolar();
   }, [refreshSolar]);
@@ -2127,11 +2140,13 @@ function ConsolePage() {
               subtitle="Hourly shortwave radiation (W/m²) and illustrative scheduled recharge (kW)"
               provenance={solarProvenance}
               summary={
-                solar.window.fallback
-                  ? "No solar window met the threshold; the six-hour off-peak window is used."
-                  : "Recharge is spread across the longest qualifying window and sized to " +
-                    solar.movedKWh.toFixed(2) +
-                    " kWh of pending event energy."
+                !event
+                  ? "Base case — send a DISCOM request to size from dispatched homes"
+                  : solar.window.fallback
+                    ? "No solar window met the threshold; the six-hour off-peak window is used."
+                    : "Recharge is spread across the longest qualifying window and sized to " +
+                      solar.movedKWh.toFixed(2) +
+                      " kWh of pending event energy."
               }
             >
               <ClientOnly>

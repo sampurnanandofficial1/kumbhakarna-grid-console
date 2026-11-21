@@ -216,7 +216,7 @@ export function runConsoleEvent(req: EventRequest): ConsoleEvent {
   const dispatchedEnergyKWh = dispatched.reduce((sum, item) => sum + item.energy, 0);
   const deviceMeteredKVA = deliveredTrueKVA * (1 + normal(r, 0, 0.025));
   const smartMeterCheckKVA = deliveredTrueKVA * (1 + normal(r, 0, 0.03));
-  const holdGrid = holdout.map((item) => item.home.backedKW + normal(r, 0, 0.03));
+  const holdGrid = holdout.map((item) => item.relief * 0.87 + normal(r, 0, 0.03));
   const dispatchGrid = dispatched.map(() => Math.max(0, normal(r, 0, 0.03)));
   const holdDiff = mean(holdGrid) - mean(dispatchGrid);
   const holdoutEstimateKVA =
@@ -232,7 +232,7 @@ export function runConsoleEvent(req: EventRequest): ConsoleEvent {
       : 0;
   const rebound =
     dispatched.length > 0
-      ? simulateRebound(hashSeed(eventId) + 9, dt.enrolment, req.durationMin, dispatched.length)
+      ? simulateRebound(hashSeed(eventId) + 9, req.durationMin, dispatched.length)
       : { naive: 0, staggeredHalf: 0, deferred: 0 };
   const reboundKVA =
     req.endStrategy === "Naive"
