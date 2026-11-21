@@ -114,13 +114,13 @@ function Select({
 }: {
   value: string | number;
   onChange: (v: string) => void;
-  options: (string | number)[];
+  options: (string | number | { value: string | number; label: string })[];
 }) {
   return (
     <select value={String(value)} onChange={(e) => onChange(e.target.value)}>
       {options.map((o) => (
-        <option key={o} value={o}>
-          {o}
+        <option key={typeof o === "object" ? o.value : o} value={typeof o === "object" ? o.value : o}>
+          {typeof o === "object" ? o.label : o}
         </option>
       ))}
     </select>
@@ -577,23 +577,24 @@ function RestorationLab() {
                       <ResponsiveContainer width="100%" height={300}>
                         <AreaChart data={surge}>
                           <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                          <XAxis dataKey="minute" />
-                          <YAxis />
+                          <XAxis dataKey="minute" tickFormatter={(value) => value + " min"} />
+                          <YAxis tickFormatter={(value) => value + " kVA"} />
                           <Tooltip />
                           <Legend />
                           {(
                             [
-                              ["basic", "#8C9C93"],
-                              ["coolers", "#77A88A"],
-                              ["refrigerators", "#2F7FB5"],
-                              ["acs", "#E39B1B"],
-                              ["pumps", "#A58BCB"],
-                              ["recharge", "#C8423F"],
+                              ["basic", "#8C9C93", "Basic loads"],
+                              ["coolers", "#77A88A", "Coolers"],
+                              ["refrigerators", "#2F7FB5", "Refrigerators"],
+                              ["acs", "#E39B1B", "ACs"],
+                              ["pumps", "#A58BCB", "Pumps"],
+                              ["recharge", "#C8423F", "Inverter recharge"],
                             ] as const
-                          ).map(([k, c]) => (
+                          ).map(([k, c, name]) => (
                             <Area
                               key={k}
                               dataKey={k}
+                              name={name}
                               stackId="1"
                               stroke={c}
                               fill={c}
@@ -829,7 +830,7 @@ function ScenariosPage() {
                   metric === "peak"
                     ? "peakPct"
                     : metric === "minutes"
-                      ? "minAbove120"
+                      ? "minAbove100"
                       : "overloadKVAh"
                 ] ?? 0),
               0,
@@ -842,7 +843,7 @@ function ScenariosPage() {
                   metric === "peak"
                     ? "peakPct"
                     : metric === "minutes"
-                      ? "minAbove120"
+                      ? "minAbove100"
                       : "overloadKVAh"
                 ] ?? 0),
               0,
@@ -853,6 +854,12 @@ function ScenariosPage() {
   }, [cells, metric]);
   const robustness = useMemo(() => {
     if (!cells.length) return [];
+    const metricLabels: Record<string, string> = {
+      overload: "Overload energy (kVAh)",
+      minutes: "Minutes above 100%",
+      ageing: "Ageing",
+      peak: "Peak loading (%)",
+    };
     return ["overload", "minutes", "ageing", "peak"].map((m) => {
       const vals = cells.map((c) => {
         const no = c.result.results.find((r) => r.key === "NO_CONTROL"),
@@ -862,7 +869,7 @@ function ScenariosPage() {
           m === "overload"
             ? no.overloadKVAh
             : m === "minutes"
-              ? no.minAbove120
+              ? no.minAbove100
               : m === "ageing"
                 ? no.ageingEqMin
                 : no.peakPct;
@@ -870,14 +877,14 @@ function ScenariosPage() {
           m === "overload"
             ? smart.overloadKVAh
             : m === "minutes"
-              ? smart.minAbove120
+              ? smart.minAbove100
               : m === "ageing"
                 ? smart.ageingEqMin
                 : smart.peakPct;
         return a ? ((a - b) / a) * 100 : 0;
       });
       return {
-        metric: m,
+        metric: metricLabels[m] ?? m,
         median: quantile(vals, 0.5),
         p10: quantile(vals, 0.1),
         p90: quantile(vals, 0.9),
@@ -901,7 +908,7 @@ function ScenariosPage() {
             <input type="number" value={seed} onChange={(e) => setSeed(Number(e.target.value))} />
           </Field>
           <Field label="Heatmap metric">
-            <Select value={metric} onChange={setMetric} options={["overload", "minutes", "peak"]} />
+            <Select value={metric} onChange={setMetric} options={[{ value: "overload", label: "Overload energy (kVAh)" }, { value: "minutes", label: "Minutes above 100%" }, { value: "peak", label: "Peak loading (%)" }]} />
           </Field>
           <Field label="Report reference">
             <label className="check-inline">
@@ -964,7 +971,7 @@ function ScenariosPage() {
                       {metric === "overload"
                         ? "kVAh"
                         : metric === "minutes"
-                          ? "min >120%"
+                          ? "min >100%"
                           : "peak %"}
                     </span>
                     {showRef && <em>TR Table 40: see Method</em>}
@@ -1938,14 +1945,14 @@ function ConsolePage() {
                 <Select
                   value={duration}
                   onChange={(v) => setDuration(Number(v) as 15 | 30)}
-                  options={[15, 30]}
+                  options={[{ value: 15, label: "15 min" }, { value: 30, label: "30 min" }]}
                 />
               </Field>
               <Field label="Holdout share">
                 <Select
                   value={holdout}
                   onChange={(v) => setHoldout(Number(v))}
-                  options={[0, 10, 15, 20]}
+                  options={[0, 10, 15, 20].map((value) => ({ value, label: value + "%" }))}
                 />
               </Field>
               <Field label="End strategy">
@@ -2193,7 +2200,7 @@ function EconomicsPage() {
       <div className="economics-layout">
         <Panel title="Model inputs" subtitle="Choose a case, then edit assumptions">
           <Field label="Scenario">
-            <Select value={input.caseId} onChange={choose} options={cases.map((c) => c.id)} />
+            <Select value={input.caseId} onChange={choose} options={cases.map((c) => ({ value: c.id, label: c.label }))} />
           </Field>
           <div className="control-grid">
             <Field label="Firm P90 kVA">

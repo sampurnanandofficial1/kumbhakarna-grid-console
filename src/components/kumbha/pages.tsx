@@ -1,4 +1,8 @@
 import { useMemo, useState } from "react";
+import { Sparkles } from "lucide-react";
+import { useGuidedDemo, ClientOnly } from "./ui";
+import { Link } from "@tanstack/react-router";
+import { overviewProfile } from "../../data/overview-profile";
 import { InteractivePage } from "./interactive-pages";
 import {
   ArrowRight,
@@ -27,6 +31,7 @@ import {
   Legend,
   Line,
   LineChart,
+  ReferenceLine,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -59,16 +64,7 @@ export function PageScreen({ page }: { page: "overview" | PageId }) {
   return <InteractivePage page={page} />;
 }
 function Overview() {
-  const chart = [
-    { minute: 0, control: 106, smart: 106 },
-    { minute: 15, control: 127, smart: 115 },
-    { minute: 30, control: 126, smart: 116 },
-    { minute: 60, control: 121, smart: 113 },
-    { minute: 90, control: 113, smart: 108 },
-    { minute: 120, control: 108, smart: 104 },
-    { minute: 180, control: 101, smart: 99 },
-    { minute: 240, control: 96, smart: 95 },
-  ];
+  const startGuidedDemo = useGuidedDemo();
   return (
     <main className="page-container">
       <section className="hero">
@@ -85,12 +81,15 @@ function Overview() {
             relief — without new batteries, export or compromising household backup.
           </p>
           <div className="hero-actions">
-            <a className="btn btn-primary" href="/restoration">
+            <button className="btn btn-primary" onClick={startGuidedDemo}>
+              <Sparkles size={16} /> Start guided demo
+            </button>
+            <Link className="btn btn-primary" to="/$page" params={{ page: "restoration" }}>
               Open Restoration Lab <ArrowRight size={16} />
-            </a>
-            <a className="btn btn-secondary" href="/method">
+            </Link>
+            <Link className="btn btn-secondary" to="/$page" params={{ page: "method" }}>
               Explore the evidence
-            </a>
+            </Link>
           </div>
           <div className="hero-footnote">
             <ShieldCheck size={15} /> Reserve protection stays on the device, even offline.
@@ -217,37 +216,29 @@ function Overview() {
             <h2>A softer restoration curve</h2>
             <p>Team research reference for a 250 kVA transformer after a two-hour outage.</p>
           </div>
-          <ProvenanceBadge kind="TEAM MODEL" />
+          <ProvenanceBadge kind="SIMULATED" source="seed 2026 · 60 runs" />
         </div>
         <ChartCard
-          title="Illustrative restoration profile"
-          subtitle="Loading as % of transformer nameplate; reference profile, not live field data"
-          provenance="TEAM MODEL"
-          summary="The report's base-cell model peaks at 127.4% without control and 116.2% with transformer-aware Smart Recharge."
+          title="Simulated restoration profile"
+          subtitle="Mean transformer loading · 250 kVA nameplate · 5-minute samples"
+          provenance="SIMULATED"
+          summary={"Across 60 seeded runs, mean run peak loading was " + overviewProfile.peaks.noControl.toFixed(2) + "% for No control and " + overviewProfile.peaks.smartDtAware.toFixed(2) + "% for transformer-aware Smart Recharge. This is engine output, not a field result."}
         >
-          <ResponsiveContainer width="100%" height={250}>
-            <LineChart data={chart}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="minute" tickFormatter={(v) => v + "m"} />
-              <YAxis domain={[90, 135]} tickFormatter={(v) => v + "%"} />
-              <Tooltip formatter={(v) => Number(v).toFixed(1) + "%"} />
-              <Legend />
-              <Line
-                dataKey="control"
-                name="No control"
-                stroke="#C8423F"
-                strokeWidth={2.5}
-                dot={false}
-              />
-              <Line
-                dataKey="smart"
-                name="Smart Recharge"
-                stroke="#005C30"
-                strokeWidth={2.5}
-                dot={false}
-              />
-            </LineChart>
-          </ResponsiveContainer>
+          <ClientOnly>
+            <ResponsiveContainer width="100%" height={250}>
+              <LineChart data={overviewProfile.series}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis type="number" dataKey="minute" domain={[0, 240]} ticks={Array.from({ length: 9 }, (_, i) => i * 30)} tickFormatter={(v) => v + " min"} />
+                <YAxis domain={[0, 140]} tickFormatter={(v) => v + "%"} />
+                <Tooltip labelFormatter={(v) => v + " min"} formatter={(v) => Number(v).toFixed(2) + "%"} />
+                <Legend />
+                <ReferenceLine y={100} stroke="#8C9C93" strokeDasharray="4 4" label="100%" />
+                <ReferenceLine y={120} stroke="#C8423F" strokeDasharray="4 4" label="120%" />
+                <Line dataKey="noControl" name="No control" stroke="#C8423F" strokeWidth={2.5} dot={false} />
+                <Line dataKey="smartDtAware" name="Smart Recharge · transformer-aware" stroke="#005C30" strokeWidth={2.5} dot={false} />
+              </LineChart>
+            </ResponsiveContainer>
+          </ClientOnly>
         </ChartCard>
       </section>
       <section className="section-block">
@@ -270,7 +261,6 @@ function Overview() {
             <h2>AA Jewels</h2>
             <p>Team credits as provided in the competition submission.</p>
           </div>
-          <ProvenanceBadge kind="ILLUSTRATIVE" />
         </div>
         <div className="team-grid">
           {team.members.map((m) => (

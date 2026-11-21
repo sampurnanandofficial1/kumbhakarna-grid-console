@@ -71,6 +71,20 @@ describe("Reserve Guard and firm flexibility", () => {
     expect(result.rebound.series[89]?.minute).toBe(89);
   });
 
+  it("derives each funnel stage from observed simulated exclusion counts", () => {
+    const result = runFlexEvents({ homes: 332, inverterShare: 0.5, enrolment: 0.4, durationMin: 30, reserveFloor: 0.6, p90OutageHours: 2, criticalShare: 0, events: 20, seed: 2026 });
+    const enrolled = result.funnel[1]?.count ?? 0;
+    const meanExcluded = (reason: string) => (result.exclusions[reason] ?? 0) / result.input.events;
+    const afterOptOut = Math.max(0, enrolled - meanExcluded("Opted out"));
+    const afterComms = Math.max(0, afterOptOut - meanExcluded("Communication failure"));
+    const afterHealth = Math.max(0, afterComms - meanExcluded("Battery health exclusion"));
+    const afterReserve = Math.max(0, afterHealth - meanExcluded("Critical backup protected") - meanExcluded("Inverter load above 70% rating") - meanExcluded("Previous event within 3 hours") - meanExcluded("Projected SOC below reserve"));
+    expect(result.funnel[2]?.count).toBe(Math.round(afterOptOut));
+    expect(result.funnel[3]?.count).toBe(Math.round(afterComms));
+    expect(result.funnel[4]?.count).toBe(Math.round(afterHealth));
+    expect(result.funnel[5]?.count).toBe(Math.round(afterReserve));
+  });
+
   it("reproduces a seeded 200-event firm capacity run", async () => {
     const input = {
       homes: 332,
