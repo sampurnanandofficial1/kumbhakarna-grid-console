@@ -1,11 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  DEFAULT_FLEX,
-  reserveGuard,
-  evaluateFlexHome,
-  runFlexEvents,
-  simulateFlex,
-} from "./flex";
+import { DEFAULT_FLEX, reserveGuard, evaluateFlexHome, runFlexEvents, simulateFlex } from "./flex";
 const home = {
   id: "H-1",
   basicKW: 0.24,

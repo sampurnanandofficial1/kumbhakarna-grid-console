@@ -227,8 +227,7 @@ export function runConsoleEvent(req: EventRequest): ConsoleEvent {
   const welchDenominator =
     holdoutVariance ** 2 / Math.max(1, holdGrid.length - 1) +
     dispatchVariance ** 2 / Math.max(1, dispatchGrid.length - 1);
-  const degreesFreedom =
-    welchDenominator > 0 ? combinedVariance ** 2 / welchDenominator : 30;
+  const degreesFreedom = welchDenominator > 0 ? combinedVariance ** 2 / welchDenominator : 30;
   // Inflate the small-sample interval for reserve-headroom prioritisation versus random holdouts.
   const holdoutSelectionAdjustment = 1.25;
   const holdoutCI =
@@ -309,37 +308,9 @@ export function runConsoleEvent(req: EventRequest): ConsoleEvent {
 }
 function studentT95(degreesFreedom: number) {
   const critical = [
-    0,
-    12.706,
-    4.303,
-    3.182,
-    2.776,
-    2.571,
-    2.447,
-    2.365,
-    2.306,
-    2.262,
-    2.228,
-    2.201,
-    2.179,
-    2.16,
-    2.145,
-    2.131,
-    2.12,
-    2.11,
-    2.101,
-    2.093,
-    2.086,
-    2.08,
-    2.074,
-    2.069,
-    2.064,
-    2.06,
-    2.056,
-    2.052,
-    2.048,
-    2.045,
-    2.042,
+    0, 12.706, 4.303, 3.182, 2.776, 2.571, 2.447, 2.365, 2.306, 2.262, 2.228, 2.201, 2.179, 2.16,
+    2.145, 2.131, 2.12, 2.11, 2.101, 2.093, 2.086, 2.08, 2.074, 2.069, 2.064, 2.06, 2.056, 2.052,
+    2.048, 2.045, 2.042,
   ];
   const df = Math.max(1, Math.min(30, degreesFreedom));
   const lower = Math.floor(df);

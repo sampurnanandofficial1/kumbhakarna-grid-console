@@ -152,11 +152,7 @@ export function evaluateFlexHome(
     draw.p90OutageHours,
   );
 }
-export function simulateRebound(
-  seed: number,
-  durationMin: number,
-  participants = 70,
-) {
+export function simulateRebound(seed: number, durationMin: number, participants = 70) {
   const r = mulberry32(hashSeed("rebound:" + seed));
   const sums = [0, 0, 0];
   const socSums = [0, 0, 0];

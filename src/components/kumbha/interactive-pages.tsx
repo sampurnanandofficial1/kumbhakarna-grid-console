@@ -1688,8 +1688,7 @@ function ConsolePage() {
     store = useDemoStore();
   const dt = feeder.find((x) => x.id === selected) ?? feeder[11]!;
   const flexBaseCase = useMemo(() => runFlexEvents(DEFAULT_FLEX), []);
-  const baseCaseEnergyKWh =
-    flexBaseCase.meanAvailableHomes * flexBaseCase.meanEnergyKWh;
+  const baseCaseEnergyKWh = flexBaseCase.meanAvailableHomes * flexBaseCase.meanEnergyKWh;
   const dispatchedEnergyKWh = event?.dispatchedEnergyKWh;
   useEffect(() => {
     hydrateDemoStore();

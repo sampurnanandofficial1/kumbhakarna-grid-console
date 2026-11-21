@@ -214,7 +214,9 @@ function Overview() {
           <div>
             <div className="eyebrow">MODELLED BASE CELL</div>
             <h2>A softer restoration curve</h2>
-            <p>Engine output (seed 2026, 60 runs) for a 250 kVA transformer after a two-hour outage.</p>
+            <p>
+              Engine output (seed 2026, 60 runs) for a 250 kVA transformer after a two-hour outage.
+            </p>
           </div>
           <ProvenanceBadge kind="SIMULATED" source="seed 2026 · 60 runs" />
         </div>
