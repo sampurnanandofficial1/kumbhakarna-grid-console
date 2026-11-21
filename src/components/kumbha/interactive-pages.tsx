@@ -1316,7 +1316,10 @@ function FlexPage() {
               >
                 <ClientOnly>
                   <ResponsiveContainer width="100%" height={280}>
-                    <LineChart data={result.rebound.series} margin={{ top: 8, right: 8, bottom: 8, left: 4 }}>
+                    <LineChart
+                      data={result.rebound.series}
+                      margin={{ top: 8, right: 8, bottom: 8, left: 4 }}
+                    >
                       <CartesianGrid strokeDasharray="3 3" vertical={false} />
                       <XAxis
                         type="number"
