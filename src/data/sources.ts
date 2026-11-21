@@ -72,8 +72,8 @@ export const sources = [
   },
   {
     id: "ceaCyber",
-    label: "CEA Cyber Security in Power Sector Regulations, 2024 (draft)",
-    url: "https://cea.nic.in/wp-content/uploads/notification/2024/08/Draft_CEA_Cyber_Security_in_Power_Sectyor_Regulations_2024_English_Version.pdf",
+    label: "CEA (Cyber Security in Power Sector) Regulations, 2026 — notified Aug 2026, in force 1 Apr 2027",
+    url: "https://powerline.net.in/2026/08/14/cea-notifies-cea-cyber-security-in-power-sector-regulations-2026/",
   },
   {
     id: "eskom",
