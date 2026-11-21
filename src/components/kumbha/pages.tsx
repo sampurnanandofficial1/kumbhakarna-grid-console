@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
 import { Sparkles } from "lucide-react";
-import { useGuidedDemo } from "./ui";
+import { useGuidedDemo, ClientOnly } from "./ui";
 import { Link } from "@tanstack/react-router";
+import { overviewProfile } from "../../data/overview-profile";
 import { InteractivePage } from "./interactive-pages";
 import {
   ArrowRight,
@@ -30,6 +31,7 @@ import {
   Legend,
   Line,
   LineChart,
+  ReferenceLine,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -214,37 +216,29 @@ function Overview() {
             <h2>A softer restoration curve</h2>
             <p>Team research reference for a 250 kVA transformer after a two-hour outage.</p>
           </div>
-          <ProvenanceBadge kind="TEAM MODEL" />
+          <ProvenanceBadge kind="SIMULATED" source="seed 2026 · 60 runs" />
         </div>
         <ChartCard
-          title="Illustrative restoration profile"
-          subtitle="Loading as % of transformer nameplate; reference profile, not live field data"
-          provenance="TEAM MODEL"
-          summary="The report's base-cell model peaks at 127.4% without control and 116.2% with transformer-aware Smart Recharge."
+          title="Simulated restoration profile"
+          subtitle="Mean transformer loading · 250 kVA nameplate · 5-minute samples"
+          provenance="SIMULATED"
+          summary={"Across 60 seeded runs, mean run peak loading was " + overviewProfile.peaks.noControl.toFixed(2) + "% for No control and " + overviewProfile.peaks.smartDtAware.toFixed(2) + "% for transformer-aware Smart Recharge. This is engine output, not a field result."}
         >
-          <ResponsiveContainer width="100%" height={250}>
-            <LineChart data={chart}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="minute" tickFormatter={(v) => v + "m"} />
-              <YAxis domain={[90, 135]} tickFormatter={(v) => v + "%"} />
-              <Tooltip formatter={(v) => Number(v).toFixed(1) + "%"} />
-              <Legend />
-              <Line
-                dataKey="control"
-                name="No control"
-                stroke="#C8423F"
-                strokeWidth={2.5}
-                dot={false}
-              />
-              <Line
-                dataKey="smart"
-                name="Smart Recharge"
-                stroke="#005C30"
-                strokeWidth={2.5}
-                dot={false}
-              />
-            </LineChart>
-          </ResponsiveContainer>
+          <ClientOnly>
+            <ResponsiveContainer width="100%" height={250}>
+              <LineChart data={overviewProfile.series}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis type="number" dataKey="minute" domain={[0, 240]} ticks={Array.from({ length: 9 }, (_, i) => i * 30)} tickFormatter={(v) => v + " min"} />
+                <YAxis domain={[0, 140]} tickFormatter={(v) => v + "%"} />
+                <Tooltip labelFormatter={(v) => v + " min"} formatter={(v) => Number(v).toFixed(2) + "%"} />
+                <Legend />
+                <ReferenceLine y={100} stroke="#8C9C93" strokeDasharray="4 4" label="100%" />
+                <ReferenceLine y={120} stroke="#C8423F" strokeDasharray="4 4" label="120%" />
+                <Line dataKey="noControl" name="No control" stroke="#C8423F" strokeWidth={2.5} dot={false} />
+                <Line dataKey="smartDtAware" name="Smart Recharge · transformer-aware" stroke="#005C30" strokeWidth={2.5} dot={false} />
+              </LineChart>
+            </ResponsiveContainer>
+          </ClientOnly>
         </ChartCard>
       </section>
       <section className="section-block">
