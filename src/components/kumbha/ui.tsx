@@ -1,14 +1,6 @@
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import {
-  Activity,
-  Bolt,
-  ChevronRight,
-  Menu,
-  RotateCcw,
-  Sparkles,
-  X,
-} from "lucide-react";
+import { Activity, Bolt, ChevronRight, Menu, RotateCcw, Sparkles, X } from "lucide-react";
 import { hydrateDemoStore, resetDemoStore, setDemoState, useDemoStore } from "../../lib/demo-store";
 import type { Provenance } from "../../data/reference";
 
