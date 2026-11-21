@@ -2052,12 +2052,14 @@ function ConsolePage() {
                 <KpiCard
                   label="Holdout estimate"
                   value={
-                    event.holdoutHomes === 0
+                    event.holdoutStatus === "none"
                       ? "n/a — no holdout group"
-                      : fmt(event.holdoutEstimateKVA)
+                      : event.holdoutStatus === "too_small"
+                        ? "Holdout too small for an estimate"
+                        : fmt(event.holdoutEstimateKVA ?? 0)
                   }
                   provenance="SIMULATED"
-                  {...(event.holdoutHomes > 0
+                  {...(event.holdoutStatus === "available" && event.holdoutCI !== null
                     ? { unit: "kVA", detail: "95% CI ±" + fmt(event.holdoutCI) + " kVA" }
                     : {})}
                 />
